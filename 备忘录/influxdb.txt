@@ -1,0 +1,16 @@
+create database cadvisor  ## 创建数据库cadvisor
+CREATE USER testuser WITH PASSWORD 'testpwd' ## 创建用户和设置密码
+GRANT ALL PRIVILEGES ON cadvisor TO testuser ## 授权数据库给指定用户
+
+//这句可以不必须
+CREATE RETENTION POLICY "cadvisor_retention" ON "cadvisor" DURATION 30d REPLICATION 1 DEFAULT ## 创建默认的数据保留策略，设置保存时间30天，副本为1
+
+
+基本操作
+
+新建数据库
+	create database test
+查询数据库
+	show databases
+删除数据库
+	drop database test

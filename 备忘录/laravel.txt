@@ -1,0 +1,43 @@
+config
+	读取配置的方法，即使用内置的config函数+配置文件名+配置参数名方式来读取配置的值
+		$value = config('app.timezone');
+	设置配置的方法（只是在运行时（runtime）配置，不会写入到配置文件里）
+		config(['app.timezone' => 'Asia/Shanghai']);
+	缓存配置
+		php artisan config:cache
+
+---------------------------------------------------------------------------------------------		
+---------------------------------------------------------------------------------------------		
+---------------------------------------------------------------------------------------------		
+laravel自定义公共函数的引入
+	1. 在 app/Helpers/目录 创建 functions.php
+	2. 配置 composer.json
+		打开项目根目录下的 composer.json 文件，找到"autoload" 配置项，补充如下代码：
+		"files":[
+            "app/Helper/functions.php"
+        ]
+	3. 执行 composer 命令
+		composer dump-auto 
+		
+---------------------------------------------------------------------------------------------		
+laravel清除视图缓存
+	php artisan view:clear
+清除运行缓存
+	php artisan cache:clear
+清除配置缓存
+	php artisan config:clear
+	
+	
+	
+---------------------------------------------------------------------------------------------
+遇到的坑		
+---------------------------------------------------------------------------------------------
+1、修改view文件后没有立即生效(vendor/laravel/framework/src/Illuminate/View/Compilers 判断时间源码)
+	有可能是服务器上的时间比本地的时间快，修改服务器上时间即可
+		更新系统年月日
+		timedatectl set-time 2017-06-13
+		更新系统时分秒
+		timedatectl set-time 10:25:17
+		
+2、The stream or file "/data/web/1024/storage/logs/laravel.log" could not be opened: failed to open stream: Permission denied
+	解决：chmod 777 -R storage/

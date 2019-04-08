@@ -1,0 +1,167 @@
+*************************** 安 装 ********************************
+Apache相关软件下载
+  Apache的相关软件包下载地址http://apr.apache.org/projects.html。
+
+1.   Apache HTTP Server
+
+    截止目前为止，Apache HTTP Server 目前最新的版本是 Apache httpd 2.4.6 Released， 下载地址：http://httpd.apache.org/download.cgi#apache24。
+
+2.   APR and APR-Util包
+
+    截止目前为止，APR and APR-Util的最新版本如下，下载地址：http://apr.apache.org/download.cgi
+
+APR 1.4.8, released June 21, 2013
+APR-util 1.5.2, released April 4, 2013
+APR-iconv 1.2.1, released November 26, 2007
+3.   PCRE包
+
+   截止目前为止，PCRE最新的包为8.33，下载地址如下
+
+https://sourceforge.net/projects/pcre/files/pcre/
+   可以下载了相关安装包，上传到/root/kerry这个临时目录。也可以直接通过wget下载。
+   
+   
+   
+------------------------------ 安装提示 -------------------------------------------
+	Linux下，源码的安装一般由3个步骤组成：配置（configure）、编译（make）、安装（make install）。
+
+	过程中用到“configure --prefix=安装目录 --with-name=依赖库源码解压目录”；其中--prefix指的是安装目录，--with指的是安装本文件所依赖的库文件。
+
+	安装httpd时，进行指定安装，用到./configure --prefix
+
+	具体解释：“.”表示当前目录；“/”是目录分隔符；合起来就是当前目录下。
+
+	1)如不指定prefix，则可执行文件默认放在/usr/local/bin，库文件默认放在/usr/local/lib，配置文件默认放在/usr/local/etc，其它的资源文件放在/usr /local/share。如果你要卸载这个程序，要么在原来的make目录下用一次make uninstall（前提是make文件指定过uninstall）,要么去上述目录里面把相关的文件一个个手工删掉。
+
+	2)如指定prefix，直接删掉一个文件夹就够了。
+
+	注：
+	./configure的作用是检测系统配置，生成makefile文件，以便你可以用make和make install来编译和安装程序。
+
+	./configure是源代码安装的第一步，主要的作用是对即将安装的软件进行配置，检查当前的环境是否满足要安装软件的依赖关系，但并不是所有的tar包都是源代码的包。
+
+	你可以先命令ls，看有没有configure或者makefile文件。
+
+	1)如果有configure，就./configure，有很多参数。如果系统环境合适，就会生成makefile，否则会报错。
+
+	2)如果有makefile，就直接make，然后make install。
+
+	你还可以用rpm或者deb包来安装。而且现在的发行版都有自己的包管理器，比如apt或yum，一个命令就可以从源下载软件，还可以自动解决依赖问题。
+
+	
+   
+------------------------------ Apache安装要求 -------------------------------------------
+	下面是官方文档的要求，必须安装APR、APR-Util、PCRE，gcc-c++等包，文档URL地址http://httpd.apache.org/docs/2.4/install.html。
+	
+	
+	
+	
+------------------------------ Apache安装过程 -------------------------------------------
+
+	Step 1：安装包gcc或gcc-c++
+		yum list gcc-c++
+		yum list gcc
+		rpm -q gcc
+		//从上面可见gcc包已经安装，缺少gcc-c++包，那么接下来安装包gcc-c++,如果此处不安装该包，后面安装过程中会报错。
+		yum install  gcc-c++
+	
+	Step 2：安装包APR和APR-Util
+		tar -zxf apr-1.4.8.tar.gz
+		cd apr-1.4.8
+		mkdir /usr/local/apr
+		./configure --prefix=/usr/local/apr
+		make
+		make install
+		
+		tar -zxf apr-util-1.5.2.tar.gz
+		cd apr-util-1.5.2
+		mkdir /usr/local/apr-util
+		./configure --prefix=/usr/local/apr-util --with-apr=/usr/local/apr/bin/apr-1-config
+		make
+		make install
+		
+	Step 3：安装包PCRE
+		[root@getlnx05 kerry]# unzip pcre-8.33.zip
+		[root@getlnx05 kerry]# cd pcre-8.33
+		[root@getlnx05 pcre-8.33]# mkdir /usr/local/pcre
+		[root@getlnx05 pcre-8.33]# ./configure --prefix=/usr/local/pcre --with-apr=/usr/local/apr/bin/apr-1-config
+		[root@getlnx05 pcre-8.33]# make
+		[root@getlnx05 pcre-8.33]# make install
+
+	Step 4：安装Apache Http Server
+		[root@getlnx05 kerry]# tar zxvf httpd-2.4.6.tar.gz
+		[root@getlnx05  kerry]# cd httpd-2.4.6
+		[root@getlnx05 httpd-2.4.6]# ./configure --prefix=/usr/local/apache --with-pcre=/usr/local/pcre --with-apr=/usr/local/apr --with-apr-util=/usr/local/apr-util
+		[root@getlnx05 httpd-2.4.6]# make
+		[root@getlnx05 httpd-2.4.6]# make install
+
+	Step 5：启动Apache服务
+		[root@getlnx05 httpd-2.4.6]#  /usr/local/apache/bin/apachectl start
+		用浏览器访问http://localhost时提示It works!
+
+	
+
+
+------------------------------ 基本的操作方法： -------------------------------------------
+/usr/local/apache/bin/apachectl start | stop | restart
+要在重启 Apache 服务器时不中断当前的连接，则应运行：
+/usr/local/apache/bin/apachectl graceful
+
+
+
+
+
+
+
+
+
+
+
+
+*************************** 安 装 问 题 ********************************
+1、在安装apr-util错误
+	xml/apr_xml.c:35:19: 致命错误：expat.h：没有那个文件或目录
+解决：yum install expat-devel
+
+
+
+
+*************************** 使 用 问 题 ********************************
+1、解决apache启动错误"httpd:Could not reliably determine..."
+	vim /usr/local/apache/conf/httpd.conf/
+	#ServerName www.example.com:80
+	ServerName localhost:80
+	
+2、Apache服务器出现Forbidden 403错误提示的解决方法总结
+	打开 apache的配置文件httpd.conf，找到这段代码：
+	代码如下:
+	<Directory />
+	Options FollowSymLinks
+	AllowOverride None
+	Order deny,allow
+	Deny from all
+	</Directory>
+	有时候由于配置了php后，这里的“Deny from all”已经拒绝了一切连接。把该行改成“allow from all”，修改后的代码如下，问题解决。
+
+	代码如下:
+	<Directory />
+	Options FollowSymLinks
+	AllowOverride None
+	Order deny,allow
+	Allow from all
+	</Directory>
+
+Linux vhosts.conf配置
+<VirtualHost *:80>
+    DocumentRoot "/data/web/wwwroot"
+    ServerName test.work.com
+    ServerAlias 
+  <Directory "/data/web/wwwroot">
+      Options FollowSymLinks ExecCGI
+      AllowOverride All
+      Order allow,deny
+      Allow from all
+      Require all granted
+  </Directory>
+</VirtualHost>	
+	

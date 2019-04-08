@@ -1,0 +1,4 @@
+pip freeze可以查看已经安装的python软件包和版本
+
+pip list 也可以
+

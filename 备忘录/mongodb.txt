@@ -1,0 +1,19 @@
+创建一个数据库新用户用db.createUser()方法
+语法：
+db.createUser(user, writeConcern)
+    user这个文档创建关于用户的身份认证和访问信息；
+    writeConcern这个文档描述保证MongoDB提供写操作的成功报告。
+eg:
+db.createUser({user:"testuse",pwd:"1qaz@wsx",roles:[{role:"readWrite",db:"picadb"}]})
+
+
+查看集合
+show collections
+创建集合
+db.createCollection(name，options)
+删除 MongoDB 中的集合;如果选定的集合成功删除，drop()方法将返回true，否则返回false
+db.collection.drop()
+
+
+MongoDB 中删除数据库
+db.dropDatabase()命令用于删除现有的数据库（use选择进入数据库）

@@ -1,0 +1,116 @@
+PHP7扩展编写的时候，提供的一些内核方法和之前的PHP之前的版本并不能完全兼容。有不少方法参数做了调整。下面是在迁移过程中遇到的一些问题。记录下来，避免大家再踩坑。
+
+add_assoc_stringl
+
+方法参数改为四个。
+
+add_assoc_stringl(parray, key, value, value_len);
+
+迁移的时候，只要把最后一个参数删除即可。
+
+add_assoc_string
+
+方法参数从四个改为了三个。
+
+add_assoc_stringl(parray, key, value);
+
+迁移的时候，只要把最后一个参数删除即可。
+
+add_next_index_stringl
+
+方法参数从四个改为了三个。
+
+add_next_index_stringl(parray, value, value_len);
+
+迁移的时候，只要把最后一个参数删除即可。
+
+add_next_index_string
+
+方法参数从三个改为了两个。
+
+add_next_index_string(parray, value);
+
+迁移的时候，只要把最后一个参数删除即可。
+
+RETURN_STRINGL
+
+方法参数从三个改为了二个。
+
+RETURN_STRINGL(value, length);
+
+迁移的时候，只要把最后一个参数删除即可。
+
+错误：‘INT64_MAX' 在此作用域中尚未声明
+
+原因为深入研究。在 #include "php.h" 上面加上一行
+
+
+#include <stdint.h> 
+#ifndef INT64_MAX
+# define INT64_MAX INT64_C( 9223372036854775807)
+#endif
+#ifndef INT64_MIN
+# define INT64_MIN (-INT64_C( 9223372036854775807)-1)
+#endif
+解决。
+
+创建类
+
+可以参考mysqli扩展mysqli.c文件中的 mysqli_objects_new 方法。
+
+变量声明从堆上分配，改为栈上分配。
+
+如，原先代码为
+
+
+zval* sarray_l;
+ALLOC_INIT_ZVAL(sarray_l);
+array_init(sarray_l);
+改为
+
+
+zval sarray_l;
+array_init(&sarray_l);
+zend_hash_get_current_key_ex
+方法参数从六个改为了四个。
+
+1
+ZEND_API int ZEND_FASTCALL zend_hash_get_current_key_ex(const HashTable *ht, zend_string **str_index, zend_ulong *num_index, HashPosition *pos)；
+迁移的时候，只要把第三个和第五个参数删除即可。
+
+错误：‘Z_TYPE_PP' 在此作用域中尚未声明
+
+已经没有Z_TYPE_PP宏，只有Z_TYPE 和Z_TYPE_P宏方法的定义。
+
+h2错误：不能从 ‘zend_string*' 转换到 ‘const char*'
+
+PHP7中对于字符串的处理使用zend_string进行存储。如果想把zend_string 转为 const char 。需要使用 ZSTR_VAL()宏方法。代码如下：
+
+
+zend_string *str;
+char *sptr;
+.....
+sptr = ZSTR_VAL(str);
+错误：‘IS_BOOL' 在此作用域中尚未声明
+
+已经没有IS_BOOL类型。而是分为了IS_TRUE 和 IS_FALSE.
+
+错误：‘Z_BVAL' 在此作用域中尚未声明
+
+已经没有Z_BVAL宏。但是可以通过类型是否是 IS_TRUE和IS_FALSE来判定。
+
+如果类型为IS_TRUE，则值为true。如果类型为IS_FALSE则值为false。
+
+错误：‘zend_object_store_get_object' 在此作用域中尚未声明
+
+增加如下代码：
+
+
+static inline hsf_object *hsf_fetch_object(zend_object *obj) /* {{{ */ {
+return (user_object *)((char*)(obj) - XtOffsetOf(user_object, std));
+}
+/* }}} */
+#define Z_USEROBJ_P(zv) hsf_fetch_object(Z_OBJ_P((zv)))
+然后把zend_object_store_get_object改为Z_USEROBJ_P即可。
+
+注意，user_object是你定义的结构体。

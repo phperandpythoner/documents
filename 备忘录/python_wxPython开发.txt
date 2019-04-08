@@ -1,0 +1,24 @@
+错误处理
+
+	python提示No module named images的解决方法
+		可将：
+			import images
+		替换为：
+			import wx.py.images as images
+		将：
+			images.getNewBitmap()
+		替换为：
+			images.getPyBitmap()
+
+*********************************************************************************************************************************
+
+常用API
+
+用来修改主循环的wx.App方法：
+	Dispatch()：迫使事件队列中的下一个事件被发送。通过MainLoop()使用或使用在定
+	制的事件循环中。
+	Pending()：如果在wxPython应用程序事件队列中有等待被处理的事件，则返回
+	True。
+	Yield(onlyIfNeeded=False)：允许等候处理的wxWidgets事件在一个长时间的处理期
+	间被分派，否则窗口系统将被锁定而不能显示或更新。如果等候处理的事件被处理
+	了，则返回True，否则返回False。

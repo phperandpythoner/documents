@@ -1,0 +1,85 @@
+一般我们都需要先装pcre, zlib，前者为了重写rewrite，后者为了gzip压缩
+Perl兼容正则表达式库（PCRE）-- PCRE LIBRARY 库安装
+sudo apt-get update
+sudo apt-get install libpcre3 libpcre3-dev
+
+可能还需要安装
+sudo apt-get install openssl libssl-dev
+
+zlib安装
+sudo apt-get install zlib1g zlib1g-dev
+
+
+--------------------------------------------------------------------------------------------------
+安装php
+sudo apt-get install libxml2-dev
+
+安装gcc
+sudo apt-get  install  build-essential
+
+apt-get install make
+apt-get install curl
+apt-get install libcurl4-gnutls-dev
+
+
+sudo apt-get install libjpeg-dev
+
+
+sudo apt-get install libpng-dev
+
+
+sudo apt-get install libmcrypt-dev
+
+
+sudo apt-get install libreadline6 libreadline6-dev
+
+安装PHP语法分析器re2c，Bison 
+    sudo apt-get install re2c 
+    sudo apt-get install Bison
+--------------------------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+NGINX
+
+查询nginx进程
+
+ps -ef | grep nginx
+
+
+重新启动nginx
+Ubuntu Nginx
+$sudo service nginx start
+$sudo service nginx stop
+
+在运行nginx时提示：
+The program 'nginx' can be found in the following packages:
+ * nginx-core
+ * nginx-extras
+ * nginx-full
+ * nginx-light
+Try: apt install <selected package>
+按照提示安装
+apt install nginx-core
+apt install nginx-extras
+apt install nginx-full
+apt install nginx-light
+
+
+/***
+nginx 错误调试
+***/
+1、Nginx [emerg]: bind() to 0.0.0.0:80 failed (98: Address already in use)
+使用命令关闭占用80端口的程序
+sudo fuser -k 80/tcp
+
+1. 查看80端口占用
+   netstat -ntpl
+2. 杀掉占用80端口的进程
+kill -9 $pid
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+
+查看系统运行服务状态
+systemctl status nginx.service

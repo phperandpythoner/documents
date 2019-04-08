@@ -1,0 +1,14 @@
+引入别名
+import "fmt"  别名fmt为std  import std "fmt"
+
+
+省略调用
+import . "fmt" 则可以直接调用Println()函数
+
+
+设置类型别名 Integer为int的别名
+type(
+	Integer int
+)
+
+if语句可以支持初始化语句

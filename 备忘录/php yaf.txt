@@ -1,0 +1,4 @@
+[yaf路由]
+
+www.domain.com/index.php/user/index/index
+模块/控制器/方法

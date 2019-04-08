@@ -1,0 +1,18 @@
+**********************ldap**********************
+安装php-ldap模块
+php-ldap模块作用就是实现ldap认证，因此需要安装
+
+1、安装软件包解决依赖
+	yum -y install openldap
+	yum -y install openldap-devel
+	yum -y install autoconf
+
+2、拷贝库文件
+	cp -frp /usr/lib64/libldap* /usr/lib/ 
+
+3、编译安装php-ldap模块
+	cd /usr/local/src/php-7.0.21/ext/ldap/　　(源码包路径)
+	/usr/local/php/bin/phpize 　　　　　　　　(php安装路径)
+	./configure --with-php-config=/usr/local/php/bin/php-config  (php安装路径)
+	make
+	make install

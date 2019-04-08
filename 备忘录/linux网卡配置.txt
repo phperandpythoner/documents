@@ -1,0 +1,21 @@
+重启网卡
+	/etc/init.d/network restart
+	或者
+	service start network 或者 systemctl restart network.service
+
+ip addr
+
+
++++++++++++++++++++++++++++++++ 配置网卡 ++++++++++++++++++++++++++++++++++++++
+vi /etc/sysconfig/network-script/ifcfg-ens33
+	BOOTPROTO=NONE
+	IPADDR=192.168.100.143
+	NETMASK=255.255.255.0
+	GATEWAY=192.168.100.2
+	DNS1=192.168.100.1
+	DNS2=8.8.8.8
+
++++++++++++++++++++++++++++++++ 解决问题 ++++++++++++++++++++++++++++++++++++++
+1、解决宿主主机不能ping同虚拟主机问题
+	虚拟机——》编辑——》虚拟网络编辑器——》还原默认设置，然后再配置 子网ip，设置 NAT设置
+	

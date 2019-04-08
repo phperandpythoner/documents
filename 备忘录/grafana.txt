@@ -1,0 +1,17 @@
+官网下载以及安装教程：https://grafana.com/grafana/download
+centos安装
+wget https://dl.grafana.com/oss/release/grafana-5.4.2-1.x86_64.rpm --no-check-certificate
+sudo yum localinstall grafana-5.4.2-1.x86_64.rpm
+
+
+启动方式：
+	脚本启动
+	service grafana-server start
+	以 grafana 用户启动 grafana 进程，grafana 用户是在安装过程中自动创建的。默认http端口：3000，默认用户和用户组是 admin
+
+	通过 systemd 启动
+	systemctl daemon-reload
+	systemctl start grafana-server
+	systemctl status grafana-server
+
+	systemctl enable grafana-server.service

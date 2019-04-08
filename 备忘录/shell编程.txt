@@ -1,0 +1,47 @@
+
+
+#*****************************************************
+Shell中判断文件,目录是否存在
+	-e filename 如果 filename存在，则为真 
+	-d filename 如果 filename为目录，则为真 
+	-f filename 如果 filename为常规文件，则为真 
+	-L filename 如果 filename为符号链接，则为真 
+	-r filename 如果 filename可读，则为真 
+	-w filename 如果 filename可写，则为真 
+	-x filename 如果 filename可执行，则为真 
+	-s filename 如果文件长度不为0，则为真 
+	-h filename 如果文件是软链接，则为真
+	-O 判断对象是否存在，并且属于当前用户
+	-G 判断对象是否存在，并且属于当前用户组
+	-nt 判断file1是否比file2新  [ "/data/file1" -nt "/data/file2" ]
+	-ot 判断file1是否比file2旧  [ "/data/file1" -ot "/data/file2" ]
+	
+#如果文件夹不存在，创建文件夹
+if [ ! -d "/myfolder" ]; then
+  mkdir /myfolder
+fi
+
+
+#******************* shell向文件写入内容 **********************************
+覆盖方式写入 >
+echo "hello,world" > index.php
+追加方式写入 >>
+echo "hello,world" >> index.php
+
+#******************* shell脚本中判断上一个命令是否执行成功 **********************************
+shell中使用符号“$?”来显示上一条命令执行的返回值，如果为0则代表执行成功，其他表示失败
+
+#******************* Shell 接收传递参数的方法 **********************************
+$0:执行的文件名
+$1:参数1
+$2:参数2
+...
+
+linux shell中判断bash脚本输入的参数个数
+表示参数个数：$#
+	if [ $# -gt 0 ]; then
+			echo "参数个数为$#个"
+	else
+			echo "没有参数"
+	fi
+	

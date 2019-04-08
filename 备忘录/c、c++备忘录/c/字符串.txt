@@ -1,0 +1,24 @@
+1、字符串基本操作
+	1）、字符串初始化
+	c语言没有字符串类型，用字符数组模拟
+	c语言字符串以数字0，或字符'\0'结尾，数字0和字符'\0'等价
+	
+	char str1[100] = {'a','b','c','d'}; //没赋值的自动以数字0填充
+	char str2[] = {'a','b','c','d'}; //数字长度为4，结尾没有数字0
+	char str3[] = "adfdsfasfaf"; //常用赋值方式，栈区
+	char *p = "asasaaaa"; // 文字常量区，内容不允许被修改
+	
+	char *buf = (char *)malloc(100); //堆区
+	strcpy(buf, "abc"); // "abc"拷贝到buf指向的内存区域中
+	
+	2)、sizeof和strlen的区别
+	sizeof:测数组长度，包含数字0，字符'\0'
+	strlen:测字符串长度，不包含数字0，字符'\0'
+	
+	char buf[] = "abcdefg";
+    printf("sizeof=%d, strlen=%d\n", sizeof(buf), strlen(buf));
+    //sizeof=8, strlen=7
+	
+	char buf2[100] = "abc";
+    printf("sizeof=%d, strlen=%d\n", sizeof(buf2), strlen(buf2));
+    //sizeof=100, strlen=3

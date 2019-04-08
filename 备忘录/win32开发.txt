@@ -1,0 +1,52 @@
+*************************** 开发流程及API ************************
+创建窗口一般流程
+	1、设计窗口
+	2、注册窗口
+	3、创建窗口
+	4、显示和更新
+	5、通过循环取消息
+	6、处理消息（窗口过程）
+	
+	
+GetMessage()和PeekMessage区别：
+	
+
+强制窗口重绘函数:
+	InvalidateRect()、InvalidateRgn()
+	
+	BOOL InvalidateRect(
+	  _In_       HWND hWnd,
+	  _In_ const RECT *lpRect, //客户无效区
+	  _In_       BOOL bErase //窗口背景是否需要重新绘制，如果是TRUE，那么窗口背景被搽去，需要重新绘制
+	);
+	
+	BOOL InvalidateRgn(
+		__in HWND hWnd,
+		__in HRgn,  //客户区无效区
+		__in BOOL bErase
+	);
+	
+	HRGN和RECT之间的相互转换:CreateRectRgnIndirect
+	HRGN CreateRectRgnIndirect(
+		__in const RECT *lprc
+	);
+	
+	
+获取字体高度的函数：GetTextMetrics(HDC, LPTEXTMETRICS)
+
+
+C语言中static与extern的用法
+static修饰全局变量只能在本文件中使用。如果一个全局变量，它既可以在本源文件中被访问到，也可以在同一个工程的其它源文件中被访问就需要用到extern.
+*************************** API ************************
+GDI
+	随机数函数
+		srand():
+			srand((unsigend)time(NULL)) //用系统时间初始化随机种子 include <time.h>
+			srand(timeGetTime()) //用系统时间初始化随机种子 include <Windows.h>
+		rand()
+
+	
+*************************** 知识补充 ************************
+C++中_T()和L的区别
+	字符串前面加L表示该字符串是Unicode字符串。
+	T宏可以把一个引号引起来的字符串，根据你的环境设置，使得编译器会根据编译目标环境选择合适的（Unicode还是ANSI）字符处理方式。如果你定义了UNICODE，那么_T宏会把字符串前面加一个L。这时 _T("ABCD") 相当于 L"ABCD" ，这是宽字符串。如果没有定义，那么_T宏不会在字符串前面加那个L，_T("ABCD") 就等价于 "ABCD" 

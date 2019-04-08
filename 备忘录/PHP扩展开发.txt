@@ -1,0 +1,57 @@
+使用ext_skel脚本生成基本扩展框架
+	资料：	http://php.net/manual/zh/internals2.buildsys.skeleton.php
+			http://www.laruence.com/2009/04/28/719.html
+			
+	创建步骤：
+		1、./ext_skel --extname=myfunctions --proto=myfunctions.def
+		
+		进入ext/你的扩展目录
+		
+		2、修改config.m4文件，注释以下两行
+			PHP_ARG_ENABLE(myfunctions, whether to enable myfunctions support,
+			[ --enable-myfunctions                Include myfunctions support])
+		3、phpize (在这里 /usr/local/php7/bin/phpize)
+		4、./configure --enable-myfunctions --with-php-config=/usr/local/php7/bin/php-config
+		5、make
+		
+		/*
+			./ext_skel --extname=myfunctions --proto=myfunctions.def
+			
+			cd ..
+			vim ext/myfunctions/config.m4
+			./buildconf
+			./configure --[with|enable]-myfunctions
+			make
+			./sapi/cli/php -f ext/myfunctions/myfunctions.php
+			vim ext/myfunctions/myfunctions.c
+			make
+		*/
+
+
+在编译make时可能遇到的错误
+	1、	collect2: ld returned 1 exit status
+		make: *** [sapi/cli/php] Error 1
+		
+		解决方法：
+			vi Makefile
+			编辑Makefile PHP7大约89 行左右的地方: EXTRA_LIBS = ..... -lcrypt 在最后加上 -liconv，例如: EXTRA_LIBS = ..... -lcrypt -liconv 然后重新再次 make 即可。
+			
+	2、configure: error: Cannot find php-config. Please use --with-php-config=PATH
+		解决加上：--with-php-config=/usr/local/php7/bin/php-config
+		
+
+		
+	
+查看PHP模块目录：
+	/usr/local/php7/lib/php/extensions/no-debug-non-zts-20160303
+	
+linux 查看php扩展
+	/usr/local/php5/bin/php -i |less  查看配置文件在哪里，编译参数
+	/usr/local/php5/bin/php -m |less  查看php加载的模块
+	
+查找php配置文件php.ini所在路径
+	/usr/local/php/bin/php --ini
+	
+	
+**************************************************************************
+php -r 'echo phpinfo();'

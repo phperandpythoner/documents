@@ -1,0 +1,896 @@
+基础篇
+
+常用命令
+	1、查看历史：
+		history
+		向上：ctrl+p
+		向下：ctrl+n
+	
+	2、删除光标后的一个字符：ctrl+d;删除光标后的字符：ctrl+k;删除光标之前的字符：ctrl+u
+	
+	3、移动：向前：ctrl+b;向后：ctrl+f;移动到头部：ctrl+a
+	
+	4、文件类型（第一个字符）
+		普通文件：-
+		目录：d
+		链接符号：l
+		管道：p
+		套接字：s
+		字符设备（鼠标、键盘）：c
+		块设备（u盘，硬盘）：b
+		
+	5.1、find
+		高级查找：查找指定目录，并列出文件详细信息
+		find ./ -type d -exec shell命令 (ls -l) {} \;
+		eg: find ./ -type d -exec ls -l {} \;
+	5.2、grep：根据文件内容查找
+		grep -r(有目录会递归查找) "查找内容" 查找路径
+	5.3、find和grep总结
+		find 搜索的路径 参数 搜索的内容
+		grep 搜索的内容 参数 搜索的路径
+	
+	6、查看文件内容命令
+		cat: cat filename
+		more: more filename
+		less:less filename
+		head: head filename [行数]
+		tail:tail filename [行数]
+		
+	7、软硬链接ln
+		软连接：ln -s 文件名或目录（使用绝对路径） 软连接名称
+		硬链接： ln 文件名 硬链接名称
+			硬链接使用场景：再多个目录里管理同一个目录或文件，并且能实时同步
+			
+	8、chmod
+		文字设定法
+			chmod who[+|-|=] mode filename
+				who:u--user
+					g--group
+					o--other
+					a--all（默认）
+				+-=:+增加
+					-减去
+					=覆盖
+				mode:r、w、x、-：没有任何权限
+		数字设定法
+		
+	9、netstat
+		常用：netstat -apn | grep 端口
+gcc相关
+	参数：
+		-v/--version
+		-I:编译时指定头文件路径
+			eg:gcc sum.c -I ./include/ -o sum 
+		-c:将汇编语言生成二进制文件，生成一个.o文件
+			eg:gcc sum.c -c -I ./include/ -o sum 
+		-g:gdb调试的时候需要加上
+		-D:在编译时指定一个宏；使用场景：测试程序时用
+			eg:gcc sum.c -I ./include/ -D DEBUG -o sum
+		-Wall：添加警告信息
+		-On:优化代码，n时优化级别：1、2、3，3为最高级别
+			eg:gcc sum.c -I ./include/ -D DEBUG -O3 -o sum
+		
+静态库的制作和使用
+	一般的目录结构：
+		include:存放头文件
+		src:源代码
+		lib:库
+		main.c
+		
+	命名：libxxx.a;xxx为库的名称，其它则是固定格式
+	制作：
+		原材料：源代码，.c .cpp文件
+		将.c文件生成.o文件
+			eg:gcc -c *.c 
+		将.o打包
+			ar rcs 静态库的名称 原材料
+			eg:ar rcs libmycalc.a *.o
+	库的使用：
+		eg：gcc main.c -I ./include/ -L ./lib/ -l mycalc -o app
+		-L:指定库的路径
+		-l：指定库的名字，去掉lib和.a
+		
+		
+动态库的制作和使用
+	命名规则：libxxx.so；xxx为库的名称，其它则是固定格式
+	制作步骤：
+		将源文件生成.o
+			gcc a.c b.c -c -fpic(或fPIC)
+		打包
+			gcc -shared -o libxxx.so a.o b.o
+	库的使用：
+		gcc main.c -I ./include/ -L ./lib/ -l mycalc -o app
+	动态库无法加载：
+		file：查看文件信息；eg:file app
+		ldd:查看应用程序在运行时需要链接的哪些库;ldd app
+		1、使用环境变量：
+			临时设置：
+				在终端：export LD_LIBRARY_PATH=动态库路径:$LD_LIBRARY_PATH
+			永久设置：
+				用户级别：
+					编辑 ~/.bashrc,加上 export LD_LIBRARY_PATH=动态库路径:$LD_LIBRARY_PATH；
+					重启终端或source ~/.bashrc
+				系统级别：
+					/etc/profile,加上 export LD_LIBRARY_PATH=动态库路径:$LD_LIBRARY_PATH；source ~/.bashrc
+		2、/etc/ld.so.cache文件列表（使用场景：适用于不会改动的库文件）
+			修改一个配置文件：/etc/ld.so.conf;把动态库的绝对路径加入其中；
+			执行一个命令：source ldconfig -v
+		知识扩展：
+			使用函数调用：dlopen,dlclose,dlsym 也可以加载动态库
+			
+-------------------------------------------------------------------------------
+
+makefile
+	1、make：gcc-编译器；make是Linux自带的构建器，构建的规则在makefile中
+	2、makefile的命名：makefile Makefile
+	3、makefile中的规则：
+		规则由三个部分组成：目标、依赖、命令;makefile由一条或多条规则组成
+		目标:依赖
+		（tab缩进）命令
+		eg:gcc a.c b.c c.c -o app
+		makefile中：
+			app:a.c b.c c.c
+				gcc a.c b.c c.c -o app
+	4、makefile的编写：
+		app3:main.o add.o multiply.o
+			gcc main.o add.o multiply.o -o app3
+
+		main.o:main.c
+				gcc main.c -c
+
+		add.o:add.c
+				gcc add.c -c
+
+		multiply.o:multiply.c
+				gcc multiply.c -c
+				
+	5、makefile语法：
+		自定义变量：
+			obj = a.o b.o c.o
+			obj = 10
+			变量的取值：a = $(obj)
+		makefile自带的变量：大写
+			CPPFLAGS
+			
+		自动变量：自能在规则命令中使用
+			$@:规则中的目标
+			$<:规则中的 第一个依赖
+			$^:规则中的所有依赖
+			
+		模式匹配：%.o:%.c
+		
+		makefile的编写:	
+		obj = main.o add.o multiply.o
+		target = app4
+		$(target):$(obj)
+				gcc $(obj) -o $(target)
+		
+		%.o:%.c
+				gcc -c $< -o $@	
+				
+		makefile中的函数：makefile所有的函数都有返回值
+			查找指定目录下的指定类型的文件:wildcard
+				src = $(wildcard ./ *.c)
+			匹配替换：patsubst
+				obj = $(patsubst %.c, %.o, $(src))
+		makefile的编写:	
+		src = $(wildcard ./*.c)
+		obj = $(patsubst %.c, %.o, $(src))
+		target = app
+		$(target):$(obj)
+				gcc $^ -o $@
+		%.o:%.c
+				gcc -c $< -o $@
+				
+		make 目标名：执行makefile中目标里的命令
+			.PHONY: clean
+			clean:
+				-rm -f *.o 
+		.PHONY: clean是生成伪目标
+		命令前加-：忽略执行失败的命令，继续执行下面的命令	
+			
+-------------------------------------------------------------------------------
+
+文件io
+	pcb：进程控制块；本质是结构体
+	文件描述符：通过文件描述符找到对应指针的文件在磁盘上的位置，1024个，前三个已被占用0，1，2：stdin,stdout,stderr
+	open：
+	read:
+	write:
+	lseek:SEEK_SET,SEEK_CUR,SEEK_END
+	
+	stat:
+		struct stat {
+			dev_t         st_dev;       //文件的设备编号
+			ino_t         st_ino;       //节点
+			mode_t        st_mode;      //文件的类型和存取的权限
+			nlink_t       st_nlink;     //连到该文件的硬连接数目，刚建立的文件值为1
+			uid_t         st_uid;       //用户ID
+			gid_t         st_gid;       //组ID
+			dev_t         st_rdev;      //(设备类型)若此文件为设备文件，则为其设备编号
+			off_t         st_size;      //文件字节数(文件大小)
+			unsigned long st_blksize;   //块大小(文件系统的I/O 缓冲区大小)
+			unsigned long st_blocks;    //块数
+			time_t        st_atime;     //最后一次访问时间
+			time_t        st_mtime;     //最后一次修改时间
+			time_t        st_ctime;     //最后一次改变时间(指属性)
+		};
+		
+		st_mode -- 16位整数：
+			0-2bit--其他人权限
+				S_IROTH 00004             其他用户具可读取权限
+				S_IWOTH 00002             其他用户具可写入权限
+				S_IXOTH 00001             其他用户具可执行权限
+				
+				S_IRWXO 00007	掩码，过滤st_mode中除其他人权限以外的信息
+			
+			3-5bit--所属组权限
+				S_IRGRP 00040             用户组具可读取权限
+				S_IWGRP 00020             用户组具可写入权限
+				S_IXGRP 00010             用户组具可执行权限
+				
+				S_IRWXG 00070	掩码，过滤st_mode中除其所属组权限以外的信息
+			
+			6-8bit--文件所有者权限
+				S_IRUSR(S_IREAD) 00400     文件所有者具可读取权限
+				S_IWUSR(S_IWRITE)00200     文件所有者具可写入权限
+				S_IXUSR(S_IEXEC) 00100     文件所有者具可执行权限
+				
+				S_IRWXR 00700	掩码，过滤st_mode中除文件所有者权限以外的信息
+				
+			12-15bit--文件类型
+				S_IFSOCK 0140000    scoket（套接字）
+				S_IFLNK 0120000     符号连接（软连接）
+				S_IFREG 0100000     一般文件（普通文件）
+				S_IFBLK 0060000     区块装置（块设备）
+				S_IFDIR 0040000     目录
+				S_IFCHR 0020000     字符装置
+				S_IFIFO 0010000     先进先出（管道）
+				
+				S_IFMT  0170000    	掩码，过滤st_mode中除文件类型以外的信息
+				eg:(st_mode & S_IFLNK) == S_IRWXR
+	lstat:用法和stat函数一样
+		lstat和stat区别：
+			lstat:读取的是软连接本身的属性
+			stat:读取的是链接文件指向的文件属性；此函数具有追踪、穿透
+	
+	access:
+	
+	getcwd:
+	mkdir:
+	rmdir:
+	
+	dup和dup2:复制文件描述符
+		dup:返回值 取最小的且没有被占用的文件描述符
+	
+		
+		
+-------------------------------------------------------------------------------
+进程控制
+	fork：
+		fork函数返回值：
+			>0:父进程的返回值
+			==0：子进程的返回值
+			== -1：创建进程失败，报错
+		子进程创建成功后，代码执行的位置：
+			父进程执行到那里，子进程就从那里开始执行
+		父子进程的执行顺序：
+			谁先抢到CPU谁先执行
+		如何区分父子进程？
+			通过fork返回值判断
+	
+	getpid/getppid:
+	
+	进程相关命令:
+		ps:
+			ps aux | grep xxx
+			ps ajx | grep xxx
+		kill:向指定进程发送信号
+			查看信号：kill -l
+			杀死某个进程：kill -9(SIGKILL) PID
+			
+	进程间的数据共享：
+		使用fork函数出来之后：两个地址空间用户数据区（.text）完全相同
+		后续各自进行了不同操作：各个进程间的数据相互独立
+		总结：读时共享，写时复制
+	
+exec函数族
+	execl执行指定目录下的程序：
+
+孤儿进程和僵尸进程：
+		孤儿进程：孤儿进程会被init进程接收，init进程成为孤儿进程的父进程
+			由于孤儿进程释放不了pcb，必须由父进程释放pcb里的资源
+		僵尸进程：子进程已经死了，但父进程没有去释放子进程pcb资源，所以子进程变成了僵尸进程
+		
+进程回收
+	wait--阻塞函数
+		pid wait(int *status)
+		函数作用：
+			阻塞并等待子进程退出
+			回收子进程残留资源
+			回去子进程退出状态
+		返回值：
+			-1：回收失败，已经没有子进程了
+			>0:回收的是子进程的pid
+		参数：status
+			判断子进程是如何死的
+				正常退出
+				被某个信号杀死的
+			子进程的退出状态--传出参数
+				1、WIFEXITED(status) 为非0 --- 进程正常退出
+					WEXITSTATUS(status)：如果以上宏为真，使用此宏获取进程退出状态(exit/return)的参数
+				2、WIFSIGNALED(status) 为非0 --- 进程异常退出
+					WTERMSIG(status)：如果以上宏为真，使用此宏获取进程异常终止的编号
+					
+	waitpid: pid_t waitpid(pid_t pid, int *status, int options)
+		pid:
+			pid>0:某个子进程的pid
+			pid==-1:回收所有子进程。循环回收，while( (wpid = waitpid(-1, &status, WNOHANG)) != -1 )
+			pid==0:回收当前进程组所有的子进程
+			pid <0:子进程的pid取反（加减号），适用于某个父进程A把子进程b给了某个父进程C，则C成为b的父进程
+		status:NULL
+		options:
+			0:堵塞
+			WNOHANG:非堵塞
+		返回值：
+			-1：回收失败，没有子进程
+			>0:被回收的子进程的pid
+			
+			
+ipc概念：进程间通信
+
+		
+			
+			
+			
+			
+			
+-------------------------------------------------------------------------------
+
+
+-------------------------------------------------------------------------------
+管道
+	1、管道的概念：
+		本质：
+			内核缓冲区
+			伪文件，不占用磁盘空间
+		特点：
+			两部分：
+				读端，写端，对应两个文件描述符
+				数据写端流入，读端流出
+				
+			操作管道的进程被销毁后，管道自动被释放
+			
+			管道默认是堵塞的：读写
+	
+	2、管道的原理：
+		内部实现方式：队列
+			环形队列
+			特点：先进先出
+		缓冲区大小：默认4k；大小会根据实际情况适当调整
+		
+	3、管道的局限性：
+		队列：数据只能读取一次，不能重复读取
+		半双工：
+			单工：遥控器
+			半双工：对讲机；数据传输是单向的
+			双工：电话
+		匿名管道：适用于由血缘关系的进程
+	
+	4、创建匿名管道：
+		int pipe(int fd[2])
+		
+	5、注意事项：
+		父进程读，关闭写端；子进程写，关闭读端
+	
+	6、练习：
+		1、父子进程通信，实现ps aux | grep "bash"
+			提示：使用重定向dup2;execlp
+			
+	7、管道的读写行为
+		读操作：
+			有数据：read(fd),正常读，返回读取的字节数
+			无数据：
+				写端全部关闭：read解除堵塞，返回0；相当于读到文件尾
+				没有全部关闭：read堵塞
+		写操作：
+			读端全部关闭：
+				管道破裂，进程被终止；内核给当前进程发送信号SIGPIPE
+			读端没有全部关闭：
+				缓冲区写满了，write堵塞
+				缓冲区没有写满：write继续写
+
+		如何设置非堵塞
+			管道默认读写两端是堵塞
+			设置读端为非堵塞pipe(fd)
+				fcntl--变参函数
+					复制文件文件描述符--dup；修改文件属性--open的时候对应的flag属性
+				设置方法：
+					获取flags：int flags = fcntl(fd[0], F_GETFL)
+					设置flags：fcntl(fd[0], F_SETFL, flags)
+						flags = flags | O_NONBLOCK 或 flags |= O_NONBLOCK
+						
+	二、创建有名管道fifo
+		1、特点：
+			伪文件，在磁盘大小永远是0；在内核中对应有块缓冲区；半双工通信方式
+		2、使用场景：没有血缘关系的进程间通信
+		3、创建方式：
+			命令创建：mkfifo 管道名
+			函数创建：mkfifo
+		4、fifo文件可以使用IO函数操作：
+			open/close read/write
+			不能使用lseek
+		
+-------------------------------------------------------------------------------
+内存映射区
+	1、创建内存映射区--mmap
+		作用：将磁盘文件的数据映射到内存，用户通过修改内存就能修改磁盘文件的数据
+		函数原型：
+			void *mmap(
+				void *addr, //映射区首地址 NULL
+				size_t length, //映射区大小
+				int prot, //映射区权限
+					PROT_READ--映射区必须要有读权限
+					PROT_WRITE
+				int flags, //标志位参数
+					MAP_SHARED,修改了内存数据会同步到磁盘
+					MAP_PRIVATE,修改了内存数据不会同步到磁盘
+				int fd, //文件描述符
+					//要映射的文件对应的文件描述符fd，用open()得到fd
+				off_t offset //映射文件的偏移量，填0
+			)
+		返回值：
+			调用成功：返回映射区的首地址
+			调用失败：MAP_FAILED
+	2、释放内存映射区--munmap
+		函数原型：int munmap(
+			void *addr,	//addr--mmap返回的首地址
+			size_t length	//mmap的第二个参数，映射区长度
+		)
+		
+	3、注意事项
+		1、mmap什么时候会调用失败？
+			第二个参数 映射区大小 为0
+			映射区必须要有读权限PROT_READ，否则失败，fd打开的权限必须大于等于prot权限
+			映射文件的偏移量必须是4096的整数倍
+		2、可以open()的时候O_CREAT一个新文件来创建映射区吗？
+			可以，但需要做文件扩展
+			方法一：使用lseek函数
+			方法二：使用truncate(filepath, length)或ftruncate(fd, length)
+		3、mmap后关闭文件描述符，mmap映射的会有影响吗？
+			没有
+		4、对ptr越界操作会怎样？
+			段错误
+	
+	4、进程间通信
+		1)、有血缘关系的通信：
+			父子间通过共享内存映射区
+		2)、没有血缘关系的通信：
+	
+	5、mmap实现内存映射：
+		a.必须要有个文件
+		b.文件数据什么时候有用
+			单纯文件映射
+			进程间通信，文件数据是没有用的
+			
+	6、mmap创建匿名映射区
+		size_t length, //映射区大小，需要指定
+		int flags, //标志位参数，增加MAP_ANON宏
+		int fd, //文件描述符 fd=-1
+	
+			
+-------------------------------------------------------------------------------
+信号
+
+信号相关函数
+	1、kill：发送信号给指定进程
+		int kill(pid_t pid, int sig)
+	2、abort：给自己发送异常终止信号
+		void abort(void)
+	3、raise:自己给自己发送信号
+		int raise(int sig)
+	4、闹钟（定时器）--alarm：每个进程只有一个定时器
+		使用的是自然法则，不受进程状态影响
+		函数原型：unsigned int alarm(unsigned int seconds)
+		当时间计数到指定秒后，函数发出一个信号：SIGALARM
+		
+	5、setitimer--定时器，并实现周期性定时
+		函数原型：int setitimer(int which,
+			const struct itimerval *new_value,
+			struct itimerval *old_value //NULL
+		);
+		struct itimerval结构体：
+			struct itimerval{
+				struct timerval it_interval; //定时器循环周期
+				struct timerval it_value; //第一次触发定时器的时间
+			};
+		struct timerval结构体：
+			struct timerval{
+				time_t tv_sec; //秒，seconds
+				suseconds_t tv_usec; //微秒，microseconds
+			};
+			
+信号集
+	1、概念
+		未决信号集：没有被当前进程处理的信号
+		阻塞信号集：将某个信号放到阻塞信号集，这个信号就不会被进程处理；阻塞解除后，信号被处理
+	
+	2、自定义信号集
+		int sigemptyset(sigset_t *set);将set集合置空
+		int sigfillset(sigset_t *set);将所有信号加入set集合
+		int sigaddset(sigset_t *set, int signo); 将signo信号加入到set集合
+		int sigdelset(sigset_t *set, int signo); 从set集合中移除signo信号
+		int sigismember(const sigset_t *set, int signo); 判断信号是否存在
+		
+	3、sigprocmask函数
+		屏蔽/接触信号屏蔽，将自定义信号集设置给阻塞信号集
+		函数原型：int sigprocmask(int how, const sigset_t *set, sigset_t *oldset);
+	
+	4、sigpending--读取当前进程的未决信号集
+		函数原型：int sigpending(sigset_t *set);
+		参数：set--内核将未决信号集写入set
+		
+		
+信号捕获
+	1、signal函数
+		函数原型：sighandler_t signal(int signum, sighandler_t handler);
+		sighandler函数指针：
+			typedef void(*sighandler_t)(int)
+			
+	2、sigaction函数
+		函数原型：int sigaction(
+			int signum, //捕捉的信号
+			const struct sigaction *act,
+			struct sigaction *oldact //NULL
+		);
+		sigaction结构体：
+			struct sigaction{
+				void (*sa_handler)(int);
+				void (*sa_sigaction)(int, siginfo_t *, void *);
+				sigset_t sa_mask; //在信号处理函数执行过程中，临时屏蔽指定的信号
+				int sa_flags; //0--sa_handler
+				void (*sa_restorer)(void); //已经废弃
+			};
+
+
+
+-------------------------------------------------------------------------------
+守护进程
+	1、守护进程的特点：
+		后台服务进程
+		独立于控制终端
+		周期性执行某任务
+		不受用户登陆注销影响
+		一般采用以d结尾的名字（服务）
+		
+	2、进程组
+		进程的组长：组里面的第一个进程；进程组的id==进程组的组长id
+	
+	3、会话--多个进程组
+		创建一个会话注意事项：
+			不能是进程组长
+			创建会话的进程成为新进程组的组长
+			有些Linux版本需要root权限执行此操作（Ubuntu不需要）
+			创建出的新会话会丢弃原有 的控制终端
+			一般步骤：先fork，父进程死掉，子进程执行创建会话操作（setsid()）
+			
+		获取进程所属的会话id:pid_t getsid(pid_t pid);
+		
+		创建一个会话：pid_t setsid(void);
+		
+	4、创建守护进程模型
+		fork子进程，父进程退出。必须
+		子进程创建新会话。必须，setsid();
+		改变当前工作目录chdir。（不是必须）
+		重设文件掩码
+			子进程会继承父进程的掩码
+			增加子进程程序操作的灵活性，umask(0)
+			不是必须
+		关闭文件描述符。不是必须
+			close(0)、close(1)、close(2)、释放资源
+		执行核心工作。必须
+
+
+
+
+
+
+
+-------------------------------------------------------------------------------
+线程
+	1、创建线程--pthread_create 
+	//如果成功返回0，失败则返回错误码；
+	//perror()不能使用该函数打印错误信息
+		函数原型：int pthread_create(
+			pthread_t *thread, //线程id=无符号长整型
+			const pthread_attr_t *attr, //线程属性，NULL
+			void *(*start_routine)(void *), //线程处理函数
+			void *arg //线程处理函数参数
+		);
+		参数：
+			thread:传出参数，线程创建成功后，会被设置一个合适的值
+			attr:默认传NULL
+			start_routine:子线程的处理函数
+			arg:回调函数的参数
+		
+		主线程先退出，子线程会被强制结束
+		验证线程直膝箭共享全局变量
+		
+		在编译时注意添加 -lpthread： gcc pthread_create.c -lpthread
+		
+	2、打印创建线程失败错误信息--strerror()
+	
+	3、单个线程退出--pthread_exit()
+		函数原型：void pthread_exit(void *retval);
+		retval指针：必须指向全局、堆
+		
+	4、阻塞等待线程退出，获取线程退出状态--pthread_join
+		函数原型：int pthread_join(pthread_t thread, void **retval);
+		
+	5、线程分离--pthread_detach
+		函数原型：int pthread_detach(pthread_t thread);
+		调用此函数之后不需要pthread_join();子线程会自动回收自己的pcb
+		
+	6、杀死或取消线程--pthread_cancel
+		函数原型：int pthread_cancel(pthread_t thread);
+		使用注意事项：
+			在要杀死的子线程对应的处理函数的内部，必须做一次系统调用;
+			使用pthread_testcancel()设置取消点
+			
+线程属性
+	通过线程属性设置线程分离
+		1、线程属性类型：pthread_attr_t attr;
+		
+		2、线程属性操作函数：
+			对线程属性变量的初始化：int pthread_attr_init(pthread_attr_t *attr);
+			
+			设置线程分离属性：
+				int pthread_attr_setdetachstate(
+					pthread_attr_t *attr,
+					int detachstate
+				);
+				参数：
+					attr:线程属性
+					detachstate:
+						分离：PTHREAD_CREATE_DETACHED
+						非分离：PTHREAD_CREATE_JOINABLE
+			
+			释放线程资源：int pthread_attr_destroy(pthread_attr_t *attr);
+			
+
+互斥量(互斥锁)
+	1、互斥锁类型：
+		创建一把锁：pthread_mutex_t mutex;
+		
+	2、互斥锁的特点：
+	3、使用互斥锁缺点：
+		1)、串行
+	4、互斥锁的使用步骤：
+		创建互斥锁：pthread_mutex_t mutex;
+		初始化：pthread_mutex_init(&mutex, NULL); //mutex = 1
+		找到线程共同操作的共享数据
+			1)、加锁：pthread_mutex_lock(&mutex); //阻塞线程; mutex = 0
+			2)、pthread_mutex_trylock(&mutex); //如果锁上锁，直接返回，不阻塞
+			3)、共享数据操作
+			4)、解锁：pthread_mytex_unlock(&mutex); //mutex = 1
+				阻塞在锁上的线程会被唤醒
+		销毁：pthread_mutex_destroy(&mutex);
+		
+	5、互斥锁相关函数：
+		初始化互斥锁：
+			pthread_mutex_init(
+				pthread_mutex_t *restrict mutex,
+				const pthread_mutexattr_t *restrict attr
+			);
+		销毁互斥锁：
+			pthread_mutex_destroy(pthread_mutex_t *mutex);
+		加锁：pthread_mutex_lock(pthread_mutex_t *mutex);
+			如果加锁的时候发现锁已经被上锁了，线程会一直阻塞在这个位置
+			锁被打开时候解除阻塞
+		尝试加锁，失败返回，不阻塞：
+			pthread_mutex_trylock(pthread_mutex_t *mutex);
+			if(pthread_mutex_trylock(&mutex) == 0){
+				//尝试加锁，并且成功加锁；访问共享资源
+			}else{
+				//错误处理
+			}
+		解锁：pthread_mutex_unlock(pthread_mutex_t *mutex);
+
+
+读写锁
+	1、读写锁是几把锁？一把锁
+		类型：pthread_rwlock_t lock;
+	
+	2、读写锁的类型：
+		读锁：对内存做读操作
+		写锁：对内存做写操作
+		
+	3、读写锁的特性：
+		1)、线程A加锁成功，又来了三个线程，做读操作，可以加锁成功
+			读共享--并行处理
+		2)、线程A加写锁成功，又来了三个线程，做读操作，三个线程阻塞
+			写独占
+		3)、线程A加读锁成功，又来了B线程加写锁阻塞，又来了C线程加读锁阻塞
+			读写不能同时操作
+			写的优先级高
+	
+	4、读写锁场景练习
+		1)、线程A加写锁成功，线程B请求读锁
+			线程B阻塞--写独占内存
+		2)、线程A持有读锁，线程B请求写锁
+			线程B阻塞--读锁、写锁不能同时操作
+		3)、线程A持有读锁，线程B请求读锁
+			线程B加锁成功--读锁是并行的
+		4)、线程A持有读锁，然后线程B请求写锁，然后线程C请求读锁
+			B阻塞，C阻塞
+			A解锁，B写锁成功，C继续阻塞
+			B解锁，C加锁成功
+		5)、线程A持有写锁，然后线程B请求读锁，然后线程C请求写锁
+			BC阻塞
+			A解锁，B继续阻塞，C加写锁成功--写锁优先级比读锁高
+			C解锁，B加读锁成功
+			
+	5、读写锁的使用场景
+		互斥锁：读写串行
+		读写锁：
+			读：并行
+			写：串行
+			当程序中读操作大于写操作时候
+			
+	6、主要操作函数
+		初始化读写锁：
+			pthread_rwlock_init(
+				pthread_rwlock_t *restrict rwlock,
+				const pthread_rwlockattr_t *restrict attr
+			);
+			
+		销毁读写锁
+			pthread_rwlock_destroy(pthread_rwlock_t *rwlock);
+			
+		加读锁
+			pthread_rwlock_rdlock(pthread_rwlock_t *rwlock);
+			
+		尝试加读锁
+			pthread_rwlock_tryrdlock(pthread_rwlock_t *rwlock);
+			
+		加写锁
+			pthread_rwlock_wrlock(pthread_rwlock_t *rwlock);
+			
+		尝试加写锁
+			pthread_rwlock_trywrlock(pthread_rwlock_t *rwlock);
+			
+		解锁
+			pthread_rwlock_unlock(pthread_rwlock_t *rwlock);
+			
+
+条件变量
+	1、条件变量是锁吗？
+		不是锁，但是条件变量能够阻塞线程
+		使用条件变量+互斥锁
+			互斥锁：保护一块共享数据
+			条件变量：引起阻塞；案例模型：生产者和消费者模型
+	
+	2、条件变量的两个动作？
+		条件不满足，阻塞线程
+		当条件满足，通知阻塞的线程开始工作
+		
+	3、条件变量的类型：pthread_cond_t cond;
+	
+	4、主要函数
+		初始化一个条件变量
+		pthread_cond_init(
+			pthread_cond_t *restrict cond,
+			const pthread_condattr_t *restrict attr
+		);
+		
+		销毁一个条件变量
+			pthread_cond_destroy(pthread_cond_t *cond);
+			
+		阻塞一个条件变量
+			pthread_cond_wait(
+				pthread_cond_t *restrict cond,
+				pthread_mutex_t *restrict mutex
+			);
+		
+		限时等待一个条件变量
+			pthread_cond_timedwait(
+				pthread_cond_t *restrict cond,
+				pthread_mutex_t *restrict mutex,
+				const struct timespec *restrict abstime
+			);
+			
+		唤醒至少一个阻塞在条件变量上的线程
+			pthread_cond_signal(pthread_cond_t *cond);
+		
+		唤醒全部阻塞在条件变量上的线程
+			pthread_cond_broadcast(pthread_cond_t *cond);
+			
+			
+信号量(信号灯)
+	注释：加强版的互斥量
+	
+	1、头文件--semaphore.h
+	
+	2、信号量类型
+		sem_t sem;
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+
+
+-------------------------------------------------------------------------------
+************Linux网络编程篇*****************
+-------------------------------------------------------------------------------
+xinetd配置
+	1、创建配置文件：/etc/xinetd.d/配置文件名称（比如：myhttpd）
+	2、配置文件参数、格式说明：
+		service myhttpd
+		{
+			socket_type		= stream						//网络套接字类型，流或者数据包
+			protocol		= tcp							//IP协议，通常是TCP或者UDP
+			wait			= no							//取值：yes/no
+			user			= nobody						//运行进程的用户id
+			server			= /home/webserver/myhttpd		//执行的完整路径
+			server_args		= /home/webserver/dir			//传递给server的值
+			disable			= no							//用于在默认的{}中禁止服务
+			flags 			= IPv4							//所使用的互联网协议
+		}
+		注意：配置想两边需要有至少一个空格隔开，或使用tab对齐
+		
+	3、vi /etc/services 向其中加入端口号，如8080
+		myhttpd		8080/tcp		#myhttpd server
+		myhttpd		8080/udp		#myhttpd server
+
+	4、重启xinetd服务器:service xinetd restart
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-------------------------------------------------------------------------------
+
+
+-------------------------------------------------------------------------------
+************ 其他补充知识篇 *****************
+-------------------------------------------------------------------------------
+某些函数使用注意：
+	1、fgets:标准输入时，会自动加上结束符\0,如：hello world\n --> hello world\n\0
+	
+	
+
+
+1、选择使用系统调用的open/close，还是使用库函数调用的fopen/fclose
+系统调用：open/close -- 有 内核缓冲区
+库调用（-->系统调用）：fopen/fclose -- 有 内核缓冲区 、 用户缓冲区
+结论：优先使用库函数调用的函数
+
+
+2、如何对文件设置非阻塞：
+	1)、fcntl()
+	2)、open()
+
+
+
+
+

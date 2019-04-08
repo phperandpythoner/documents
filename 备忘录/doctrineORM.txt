@@ -1,0 +1,15 @@
+------------------------------------------------------------------
+------------ 安装 
+------------------------------------------------------------------
+	mkdir doctrineORM
+	touch composer.json
+	vi composer.json
+		{
+			"require": {
+				"doctrine/orm": "^2.6.2"
+			},
+			"autoload": {
+				"psr-0": {"": "src/"}
+			}
+		}
+	composer install

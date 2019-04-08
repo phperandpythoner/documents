@@ -1,0 +1,463 @@
+. 代表此层目录
+.. 代表上一层目录
+- 代表前一个工作目录
+~ 代表『目前使用者身份』所在的家目录
+~account 代表 account 这个使用者的家目录
+
+
+
+*************************************************** 常用命令 *******************************************************
+从远处复制文件到本地目录
+	scp root@192.168.120.204:/opt/soft/nginx-0.5.38.tar.gz /opt/soft/
+从远处复制到本地
+	scp -r root@192.168.120.204:/opt/soft/mongodb /opt/soft/
+	
+安装man手册
+	yum search manpages-zh
+	yum -y install man-pages-zh-CN.noarch
+	
+linux命令：返回上一次目录
+cd -
+	
+**********************************************************************************************************
+Linux的关机与重启命令
+	重启命令：
+	1、reboot
+	2、shutdown -r now 立刻重启(root用户使用)
+	3、shutdown -r 10 过10分钟自动重启(root用户使用) 
+	4、shutdown -r 20:35 在时间为20:35时候重启(root用户使用)
+	如果是通过shutdown命令设置重启的话，可以用shutdown -c命令取消重启
+
+	关机命令：
+	1、halt   立刻关机
+	2、poweroff  立刻关机
+	3、shutdown -h now 立刻关机(root用户使用)
+	4、shutdown -h 10 10分钟后自动关机
+	如果是通过shutdown命令设置关机的话，可以用shutdown -c命令取消重启
+
+
+Linux防火墙iptables的启动与关闭
+CentOS7
+1.关闭firewall
+	systemctl stop firewalld.service            //停止firewall
+	systemctl disable firewalld.service        //禁止firewall开机启动
+2.安装iptables
+	yum install iptables-services            //安装
+	systemctl restart iptables.service #重启防火墙使配置生效
+	systemctl enable iptables.service #设置防火墙开机启动
+	systemctl disable iptables.service #禁止防火墙开机启动
+CentOS6
+	service iptables status      ---查看防火墙状态
+	service iptables stop           --临时关闭防火墙
+	service iptables start          --临时启动防火墙
+	service iptables restart          --重启防火墙
+	chkconfig iptables off          --永久关闭防火墙
+	chkconfig iptables on          --永久开启防火墙
+
+******************************************** selinux **************************************************************
+查看状态
+	sestatus 或 /usr/sbin/sestatus -v ##如果SELinux status参数为enabled即为开启状态
+
+关闭SELinux：
+1、临时关闭（不用重启机器）：
+	setenforce 0                  ##设置SELinux 成为permissive模式
+	                              ##setenforce 1 设置SELinux 成为enforcing模式
+2、修改配置文件需要重启机器：
+	修改/etc/selinux/config 文件
+	将SELINUX=enforcing改为SELINUX=disabled
+	reboot重启机器即可
+	
+******************************************** ipvsadm **************************************************************
+
+
+******************************************** ifconfig **************************************************************
+关闭网卡
+	ifconfig ens33(网卡) down
+
+
+******************************************** route **************************************************************
+删除网关
+	route del default
+添加网关
+	route add default gw 192.168.10.1(网关地址)
+查看网关
+	route -n
+
+	
+**********************************************************************************************************
+1、查看nginx安装目录
+输入命令
+# ps  -ef | grep nginx
+返回结果包含安装目录
+root      2662     1  0 07:12 ?        00:00:00 nginx: master process /usr/sbin/nginx
+
+2、查看nginx.conf配置文件目录
+输入命令
+# nginx -t
+返回结果包含配置文件目录
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+
+
+查看Linux内核版本命令（两种方法）
+1、cat /proc/version
+2、uname -a
+
+
+查看Linux系统版本的命令（3种方法）
+1、lsb_release -a，即可列出所有版本信息
+2、cat /etc/redhat-release，这种方法只适合Redhat系的Linux
+3、cat /etc/issue，此命令也适用于所有的Linux发行版
+
+
+
+*************************************** telnet *******************************************************************
+linux服务器 退出telnet 命令
+	第一步：ctrl+]
+	第二步：quit
+
+
+************************************* 防火墙 ******************************************
+1、关闭firewall：
+systemctl stop firewalld.service #停止firewall
+systemctl disable firewalld.service #禁止firewall开机启动
+firewall-cmd --state #查看默认防火墙状态（关闭后显示notrunning，开启后显示running）
+
+
+************************************* vi ******************************************
+1.跳到文本的最后一行：按“G”,即“shift+g”
+2.跳到最后一行的最后一个字符 ： 先重复1的操作即按“G”，之后按“$”键，即“shift+4”。
+3.跳到第一行的第一个字符：先按两次“g”，
+4.跳转到当前行的第一个字符：在当前行按“0”。
+5.vi加密。进入vi，输入":"  + "X" 之后就提示你输入两次密码。
+6.文件重新载入 :e!
+7.单行复制  将光标移到复制行 按 'yy'进行复制
+8.多行复制  将光标移到复制首行 按 'nyy'进行复制 n=1.2.3.4。。。。。
+9.粘贴 将光标移到粘贴行 按 'p'进行粘贴
+10.查找 /pattern Enter 
+
+************************************* vim ******************************************
+vim删除多行
+	VI中的多行删除与复制
+	法一：
+		单行删除，：1（待删除行）d
+		多行删除 ，：1,10d	（在命令行下输入 :起始行号,结束行号d）
+	法二：
+		光标所在行，dd
+		光标所在行以下的N行，Ndd
+
+
+vim 复制一整行 复制多行
+	1、复制
+		1）单行复制
+			在命令模式下，将光标移动到将要复制的行处，按“yy”进行复制；
+		2）多行复制
+			在命令模式下，将光标移动到将要复制的首行处，按“nyy”复制n行；其中n为1、2、3……
+	2、粘贴
+		在命令模式下，将光标移动到将要粘贴的行处，按“p”进行粘贴
+	3、剪切
+		使用dd剪切一行
+		使用 行数ndd 剪切n行
+		使用p对剪切的行进行粘贴
+
+Vim快速移动光标至行首和行尾
+	I是定位到行首，A是定位到行末		
+
+vim跳转到指定的行
+	命令行模式下输入（n为指定的行号）：
+	（1）ngg / nG
+	（2）:n
+	（3）vim +n filename（注意这里要输入 + 号）
+	三者的区别在于，ngg/nG输入以后不需要按下回车键，而输入:n之后还要按下回车键才会跳转，vim +n filename只能在打开文件时跳转到相应的行。
+
+跳到文本的最后一行：按“G”,即“shift+g”
+跳到最后一行的最后一个字符 ： 先重复1的操作即按“G”，之后按“$”键，即“shift+4”
+跳到第一行的第一个字符：先按两次“g”
+跳转到当前行的第一个字符：在当前行按“0”	
+	
+vim的分屏功能：
+	分屏启动Vim
+		使用小写的o参数来上下分屏（横向分屏）。
+		vim -on file1 file2 ...
+		使用大写的O参数来左右分屏（纵向分屏）。
+		vim -On file1 file2 ...
+		注释: n是数字，表示分成几个屏。
+
+	关闭分屏 (先同时按住crtl+w，松开后再按后面的参数）
+		关闭当前窗口。
+		Ctrl+W c
+		关闭当前窗口，如果只剩最后一个了，则退出Vim。
+		Ctrl+W q
+		把光标移到下一个的屏中
+		Ctrl+W w
+		
+	分屏
+		上下分割当前打开的文件。
+		Ctrl+W s
+		上下分割，并打开一个新的文件。
+		:sp filename
+		左右分割当前打开的文件。
+		Ctrl+W v
+		左右分割，并打开一个新的文件。
+		:vsp filename
+	移动光标
+		（Vi中的光标键是h, j, k, l，要在各个屏间切换，只需要先按一下Ctrl+W）
+		把光标移到右边的屏。
+		Ctrl+W l
+		把光标移到左边的屏中。
+		Ctrl+W h
+		把光标移到上边的屏中。
+		Ctrl+W k
+		把光标移到下边的屏中。
+		Ctrl+W j
+		把光标移到下一个的屏中。.
+		Ctrl+W w
+	移动分屏
+		（这个功能还是使用了Vim的光标键，只不过都是大写。当然了，如果你的分屏很乱很复杂的话，这个功能可能会出现一些非常奇怪的症状。）
+		向右移动。
+		Ctrl+W L
+		向左移动
+		Ctrl+W H
+		向上移动
+		Ctrl+W K
+		向下移动
+		Ctrl+W J
+	屏幕尺寸
+		（下面是改变尺寸的一些操作，主要是高度，对于宽度你可以使用Ctrl+W <或是>，但这可能需要最新的版本才支持。）
+		让所有的屏都有一样的高度。
+		Ctrl+W =
+		增加高度。
+		Ctrl+W +
+		减少高度。
+		Ctrl+W -
+
+		
+linux中vim永久显示行号、开启语法高亮
+vi ~/.vimrc
+	 set nu!
+	 
+*************************************解压命令******************************************
+1、.tar.xz解压
+tar xvJf  ***.tar.xz来解压
+压缩
+	tar czvf filename.tar dirname
+	
+**********************************************************************************************************
+ cd：变换目录
+ pwd：显示目前的目录
+ mkdir：建立一个新的目录
+ rmdir：删除一个空的目录
+
+**********************************************************************************************************
+挂载光驱
+挂载光驱mount -t iso9660 -o ro /dev/cdrom /mnt （注意命令中输入的空格）这时，你的linux.iso里面的文件就相当于windows光盘里面的文件了。
+　　输入df命令就可以看到如下图的挂载目录
+
+************************* 常用命令 *****************************************
+
+1、重命名 vm
+
+1、复制一行
+之前我只知道复制哪一行就把光标放在哪一行然后用命令y,就复制了，然后我再用p命令就可以把这行复制到光标下面
+
+2、复制多行
+我们可以使用命令v然后加上 “上下键”，在vim可以看到部分文本变颜色，就像在windows系统下的shift键加上鼠标左键的效果一样
+然后用y命令复制，然后粘贴用p命令显示在光标下面
+v + 上or下键  
+y  
+p  
+
+**********************************************************************************************************
+- 文件
+d 目录
+l 软连接
+
+**********************************************************************************************************
+
+格式：service <service> start
+启动指定的系统服务<service>
+ 
+格式：service <service> stop
+停止指定的系统服务<service>
+ 
+格式：service <service> restart
+重新启动指定的系统服务<service>，即先停止（stop），然后再启动（start）
+
+******************************************************************************************************
+linux下安装google protobuf（详细）
+下载自github的代码需要首先执行 $ ./autogen.sh 生成configure文件
+
+$./configure --prefix=/usr/local/protobuf
+$ make
+$ make check
+$ make install
+
+到此步还没有安装完毕，在/etc/profile 或者用户目录 ~/.bash_profile
+添加下面内容
+####### add protobuf lib path ########
+#(动态库搜索路径) 程序加载运行期间查找动态链接库时指定除了系统默认路径之外的其他路径
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/protobuf/lib/
+#(静态库搜索路径) 程序编译期间查找动态链接库时指定查找共享库的路径
+export LIBRARY_PATH=$LIBRARY_PATH:/usr/local/protobuf/lib/
+#执行程序搜索路径
+export PATH=$PATH:/usr/local/protobuf/bin/
+#c程序头文件搜索路径
+export C_INCLUDE_PATH=$C_INCLUDE_PATH:/usr/local/protobuf/include/
+#c++程序头文件搜索路径
+export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:/usr/local/protobuf/include/
+#pkg-config 路径
+export PKG_CONFIG_PATH=/usr/local/protobuf/lib/pkgconfig/
+
+
+如果遇到错误：configure.ac:30: error: possibly undefined macro: AC_PROG_LIBTOOL
+则安装：缺少一个工具：sudo apt-get install libtool  
+centos：yum -y install libtool
+
+
+
+
+******************************************************************************************************
+常用命令：
+free：查看内存和Swap信息
+
+
+
+******************************************************************************************************
+************** 网卡配置 *******************************
+
+1、在CentOS最小化服务器版本中如何查找网卡IP和其它详细信息？
+CentOS 7最小化系统，使用“ip addr”和“ip link”命令来查找网卡详情。要知道统计数据，可以使用“ip -s link”。
+
+
+2、centos 7 Minimal设置网络及配置ssh，安装ifconfig
+在虚拟机中以最小化方式安装centos7，后无法上网，因为centos7默认网卡未激活。 ，激活网卡：在文件 /etc/sysconfig/network-scripts/ifcfg-enp0s3 中
+进入编辑模式，将 ONBOOT=no 改为 ONBOOT=yes，就OK，保存后重启网卡： service network restart 
+继续安装ifconfig，yum install net-tools.x86_64
+
+******************************************************************************************************
+*************************** 常用工具 ****************************
+linux CentOS 安装rz和sz命令 lrzsz
+// 首先安装lrzsz 
+# yum -y install lrzsz 
+// 上传文件，执行命令rz，会跳出文件选择窗口，选择好文件，点击确认即可。
+# rz
+// 下载文件，执行命令sz
+# sz
+
+
+
+******************************************************************************************************
+linux设置和删除环境变量
+1. 在/etc/profile文件中添加变量【对所有用户生效（永久的）】
+用vi在文件/etc/profile文件中增加变量，该变量将会对Linux下所有用户有效，并且是“永久的”。
+例如：编辑/etc/profile文件，添加CLASSPATH变量
+# vi /etc/profile
+export CLASSPATH=.:$JAVA_HOME/lib/tools.jar;$JAVA_HOME/lib/dt.jar
+source /etc/profile是让/etc/profile文件修改后立即生效，
+
+2. 在用户目录下的.bash_profile文件中增加变量【对单一用户生效（永久的）】
+用VI在用户目录下的.bash_profile文件中增加变量，改变量仅会对当前用户有效，并且是“永久的”。
+例如：编辑li用户目录（/home/li）下的.bashrc
+$ vi /home/li/.bashrc
+添加如下内容：
+export CLASSPATH=.:$JAVA_HOME/lib/tools.jar;$JAVA_HOME/lib/dt.jar
+注：修改文件后要想马上生效还要运行$ source /home/li/.bashrc不然只能在下次重进此用户时生效。
+
+3. 直接运行export命令定义变量【只对当前shell（BASH）有效（临时的）】
+******************************************************************************************************
+
+
+*********** 常见问题 ****************
+mount /dev/cdrom /mnt/cdrom/
+mount: block device /dev/cdrom is write-protected, mounting read-only
+解决
+mount -o remount,rw /
+
+
+
+*********** Linux系统安装VMware Tools和同W7共享文件遇到的问题 ****************
+CentOS6.5 minimal版本  minimal版本默认不启动网络，所以要自己配置
+vi /etc/sysconfig/network-script/ifcfg-eth0
+1 NM_CONTROLLED="no"     #修改为no不依赖VMware NetworkManager控制
+2 ONBOOT="yes"           #修改为yes设置开机启动
+
+用vmware-hgfsclient命令可以看到你的共享文件夹目
+
+
+
+***************************** Vmware10 Centos7 共享文件夹设置方法 ********************************
+Vmware10 Centos7 共享文件夹设置方法
+先安装包依赖：
+yum -y install kernel-devel-$(uname -r) 
+yum -y install net-tools perl gcc gcc-c++
+ 
+
+安装vm tool
+mount /dev/cdrom /home/tmp
+cp /home/tmp/VMwareTools-9.6.0-1294478.tar.gz /tmp
+cd /tmp
+tar -zxvf VMwareTools-9.6.0-1294478.tar.gz
+cd vmware-tools-distrib
+./vmware-install.pl
+按提示操作即可。
+ 
+有/mnt/hgfs但没有共享文件的解决方法：
+mount -t vmhgfs .host:/  /mnt/hgfs
+Error: cannot mount filesystem: No such device
+ 
+
+这时不能用mount工具挂载，而是得用vmhgfs-fuse，需要安装工具包
+yum install open-vm-tools-devel -y
+有的源的名字并不一定为open-vm-tools-devel(centos) ，而是open-vm-dkms(unbuntu)
+执行：vmhgfs-fuse .host:/ /mnt/hgfs
+ 
+此时进入/mnt/hgfs就能看到你设置的共享文件夹了。
+
+******************************************************************************************************
+建立软连接
+ln -s 源文件 软连接名称
+
+
+******************************************************************************************************
+yum针对软件包操作常用命令： 
+1.使用YUM查找软件包 
+命令：yum search 
+2.列出所有可安装的软件包 
+命令：yum list 
+3.列出所有可更新的软件包 
+命令：yum list updates 
+4.列出所有已安装的软件包 
+命令：yum list installed 
+5.列出所有已安装但不在 Yum Repository 内的软件包 
+命令：yum list extras 
+6.列出所指定的软件包 
+命令：yum list 
+7.使用YUM获取软件包信息 
+命令：yum info 
+8.列出所有软件包的信息 
+命令：yum info 
+9.列出所有可更新的软件包信息 
+命令：yum info updates 
+10.列出所有已安装的软件包信息 
+命令：yum info installed 
+11.列出所有已安装但不在 Yum Repository 内的软件包信息 
+命令：yum info extras 
+12.列出软件包提供哪些文件 
+命令：yum provides
+******************************************************************************************************
+******************************************************************************************************
+
+
+
+*********************************************** 常 见 操 作 问 题 *******************************************************
+1、ssh连接The authenticity of host can't be established 或使用scp出现The authenticity of host can't be established
+scp免密码登录：Linux基础 - scp免密码登陆进行远程文件同步
+	方法一：
+		sh登录　The authenticity of host 192.168.0.xxx can't be established.　的问题,即可不修改/etc/ssh/ssh_config文件的配置而解决此问题
+		ssh  -o StrictHostKeyChecking=no  192.168.0.xxx　
+		输入密码，再次scp，正常输入密码，问题解决。
+	方法二：
+		修改/etc/ssh/ssh_config文件的配置，以后则不会再出现此问题
+		最后面添加：
+		StrictHostKeyChecking no
+		UserKnownHostsFile /dev/null

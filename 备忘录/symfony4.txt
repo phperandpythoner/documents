@@ -1,0 +1,221 @@
+------------symfony install
+composer create-project symfony/framework-standard-edition my_project_name
+ 
+------------symfony4 install
+	composer create-project symfony/website-skeleton my-project
+
+------------Annotation Routes
+	 composer require annotations
+	 
+	 
+	 
+------------The bin/console Command
+	php bin/console
+	php bin/console debug:router
+	
+------------package
+// composer config -g repo.packagist composer https://packagist.phpcomposer.com
+composer require symfony/asset
+
+
+------------------------------------------------------------------
+------------Databases and the Doctrine ORM------------			 -
+document url:https://symfony.com/doc/current/doctrine.html		 -
+------------------------------------------------------------------
+Installing Doctrine
+	composer require symfony/orm-pack
+	composer require symfony/maker-bundle --dev
+
+配置数据库信息
+	.env (根目录)
+	DATABASE_URL="mysql://db_user:db_password@127.0.0.1:3306/db_name"
+	
+使用命令生成数据库
+	php bin/console doctrine:database:create
+	
+Creating an Entity Class 创建实体类
+	php bin/console make:entity
+	创建过程
+		Class name of the entity to create or update:
+		> Product
+
+		 to stop adding fields):
+		> name
+
+		Field type (enter ? to see all types) [string]:
+		> string
+
+		Field length [255]:
+		> 255
+
+		Can this field be null in the database (nullable) (yes/no) [no]:
+		> no
+	创建的文件：src/Entity/Product.php
+	
+Migrations: Creating the Database Tables/Schema 迁移：创建数据库表/架构
+	#以下命令创建迁移文件：src/Migrations/Version20190227020055.php
+	 php bin/console make:migration
+	#以下命令执行迁移文件
+	 php bin/console doctrine:migrations:migrate
+
+Migrations & Adding more Fields 迁移和添加更多字段
+	php bin/console make:entity
+
+		Class name of the entity to create or update
+		> Product
+
+		 to stop adding fields):
+		> description
+
+		Field type (enter ? to see all types) [string]:
+		> text
+
+		Can this field be null in the database (nullable) (yes/no) [no]:
+		> no
+
+		 to stop adding fields):
+		>
+		(press enter again to finish)
+	然后生成迁移文件和执行
+	
+Persisting Objects to the Database 将对象保留到数据库
+	php bin/console make:controller ProductController
+	生成的文件//src/Controller/ProductController.php
+	
+生成迁移
+	php bin/console doctrine:migrations:migrate
+查询：
+	php bin/console doctrine:query:sql 'SELECT * FROM product'
+	
+Dummy Data Fixtures
+	composer require doctrine/doctrine-fixtures-bundle --dev
+	
+	php bin/console make:fixtures
+		The class name of the fixtures to create (e.g. AppFixtures):
+		> ProductFixture
+	创建的文件// src/DataFixtures/ProductFixture.php
+	
+	//Empty the database and reload all the fixture classes：
+	//会清空数据库，并生成ProductFixture.php里的数据
+	php bin/console doctrine:fixtures:load
+
+
+其他资料：
+https://www.doctrine-project.org/projects/doctrine-orm/en/latest/tutorials/getting-started.html#getting-started-with-doctrine
+
+	
+------------------------------------------------------------------
+------------ SonataAdminBundle 						 -------------
+https://symfony.com/doc/current/bundles/SonataAdminBundle/index.html
+------------------------------------------------------------------
+
+1.1、安装
+	composer require sonata-project/admin-bundle
+	
+1.2、下载存储包
+	安装SonataDoctrineORMAdminBundle
+		1.1。下载包
+		composer require sonata-project/doctrine-orm-admin-bundle
+		1.2。启用捆绑
+		接下来，bundles.php如果文件中尚未启用，请务必启用它们：
+		// config/bundles.php
+		return [
+			// ...
+			Sonata\DoctrineORMAdminBundle\SonataDoctrineORMAdminBundle::class => ['all' => true],
+		];
+		
+1.2、下载存储包
+1.2、下载存储包
+1.2、下载存储包
+	
+
+------------------------------------------------------------------
+------------ How to Work with Doctrine Associations / Relations 
+------------------------------------------------------------------
+https://symfony.com/doc/current/doctrine/associations.html
+
+
+------------------------------------------------------------------
+------------ symfony4常用依赖列表
+------------------------------------------------------------------
+composer require annotations
+
+composer require symfony/orm-pack
+composer require symfony/maker-bundle --dev
+
+composer require doctrine/doctrine-fixtures-bundle --dev
+
+composer require symfony/yaml
+
+//swagger
+composer require nelmio/api-doc-bundle
+//使用：https://symfony.com/doc/master/bundles/NelmioApiDocBundle/index.html
+
+
+//security
+composer require symfony/ldap
+//https://symfony.com/doc/current/security/ldap.html
+//需要开启php ldap扩展
+
+//FOSRestBundle
+composer require friendsofsymfony/rest-bundle
+
+------------------------------------------------------------------
+------------ symfony4常用库 
+------------------------------------------------------------------
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Yaml\Yaml;
+use Symfony\Component\Routing\Annotation\Route;
+
+
+//--------验证
+use Symfony\Component\Validator\Validation;
+use Symfony\Component\Validator\Constraints\Length;
+//非空
+use Symfony\Component\Validator\Constraints\NotBlank;
+
+//--------路由
+use FOS\RestBundle\Controller\AbstractFOSRestController;
+use FOS\RestBundle\Controller\Annotations as Rest;
+//路由格式
+/**
+ * @Rest\Get("/", name="farms_pigs_feedkind_index")
+ * @param Request $request
+ * @return \Symfony\Component\HttpFoundation\JsonResponse
+ */
+/**
+ * @Rest\Post("/", name="farms_pigs_feedkind_index")
+ * @param Request $request
+ * @return \Symfony\Component\HttpFoundation\JsonResponse
+ */
+
+use Symfony\Component\Routing\Annotation\Route;
+ 
+------------------------------------------------------------------
+------------ How to Work with Doctrine Associations / Relations 
+------------------------------------------------------------------
+
+
+------------------------------------------------------------------
+------------ 常见错误列表 
+------------------------------------------------------------------
+1、Catchable Fatal Error: Object of class App\Entity\User could not be converted to string
+解决：
+	configureFormFields：
+		->add('author', EntityType::class, [
+                'class' => User::class,
+                'choice_label' => 'name',
+            ])
+			
+	configureDatagridFilters：
+		->add('author', null, [], EntityType::class, [
+                'class' => User::class,
+                'choice_label' => 'name',
+            ])
+
+2、An exception has been thrown during the rendering of a template ("You must define an `associated_property` option or create a `App\Entity\User::__toString` method to the field option author from service app.admin.post is "). 
+解决：
+	configureListFields：
+		->add('author.name') //关系属性 ManyToOne-> private $author;

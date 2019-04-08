@@ -1,0 +1,284 @@
+*******************************************************************************************
+*	mysql常用命令
+*******************************************************************************************	
+1、查看MySQL插件
+	show plugins
+
+2、查看引擎信息，如innodb的trx id
+	(1)、show engine innodb status\G;
+		//Trx id counter 2977
+	(2)、查看INFORMATION_SCHEMA.INNODB_TRX、INNODB_LOCKS、INNODB_LOCK_WAITS 三个表，通过这些信息能快速发现哪些事务在阻塞其他事务
+		#先查询 INNODB_TRX 表，看看都有哪些事务
+		mysql> SELECT * FROM INFORMATION_SCHEMA.INNODB_TRX\G
+		#再看 INNODB_LOCKS 表，看看都有什么锁
+		mysql> select * from information_schema.INNODB_LOCKS\G
+		#最后看 INNODB_LOCK_WAITS 表，看看当前都有哪些锁等待
+		mysql> select * from information_schema.INNODB_LOCK_WAITS\G
+
+
+
+
+
+
+*******************************************************************************************
+*	mysql导入导出sql文件
+*******************************************************************************************	
+一、导出数据库用mysqldump命令（注意mysql的安装路径，即此命令的路径）：
+1、导出数据和表结构：
+mysqldump -u用户名 -p密码 数据库名 > 数据库名.sql
+#/usr/local/mysql/bin/   mysqldump -uroot -p abc > abc.sql
+敲回车后会提示输入密码
+
+2、只导出表结构
+mysqldump -u用户名 -p密码 -d 数据库名 > 数据库名.sql
+#/usr/local/mysql/bin/   mysqldump -uroot -p -d abc > abc.sql
+
+注：/usr/local/mysql/bin/  --->  mysql的data目录
+
+
+二、导入数据库
+1、首先建空数据库
+mysql>create database abc;
+
+2、导入数据库
+方法一：
+（1）选择数据库
+mysql>use abc;
+（2）设置数据库编码
+mysql>set names utf8;
+（3）导入数据（注意sql文件的路径）
+mysql>source /home/abc/abc.sql;
+方法二：
+mysql -u用户名 -p密码 数据库名 < 数据库名.sql
+#mysql -uabc_f -p abc < abc.sql
+
+
+	
+*******************************************************************************************
+*	Mysql-InnoDB 事务-一致性读(快照读)
+*******************************************************************************************
+START TRANSACTION WITH consistent snapshot 
+它的含义是：执行 start transaction 同时建立本事务一致性读的 snapshot . 而不是等到执行第一条语句时，才开始事务，并且建立一致性读的 snapshot
+
+*******************************************************************************************
+*	bin-log
+*******************************************************************************************
+1、开启bin-log
+	vi /etc/my.cnf
+	添加：
+	server-id = 1
+	log-bin=mysql-bin
+	保存退出，重启mysql:
+		pkill mysql;/usr/local/mysql/bin/mysqld_safe --user=mysql &
+	
+2、与bin-log有关的日志刷新
+	flush logs
+	会多出一个bin-log日志
+	show master status
+	查看最后一个bin日志
+	reset master
+	清空所有bin-log日志
+
+
+	
+	
+
+*******************************************************************************************
+*	mysql主从服务器配置
+*******************************************************************************************	
+主数据库master修改：
+1.修改mysql配置
+找到主数据库的配置文件my.cnf(或者my.ini)，我的在/etc/mysql/my.cnf,在[mysqld]部分插入如下两行：
+[mysqld]
+log-bin=mysql-bin #开启二进制日志
+server-id=1 #设置server-id
+
+从服务器slave修改：
+1.修改mysql配置
+同样找到my.cnf配置文件，添加server-id
+[mysqld]
+log-bin=mysql-bin #开启二进制日志
+server-id=2 #设置server-id，必须唯一
+
+2.重启mysql，打开mysql会话，执行同步SQL语句(需要主服务器主机名，登陆凭据，二进制文件的名称和位置)：
+mysql> CHANGE MASTER TO
+-> MASTER_HOST='172.16.7.129',
+-> MASTER_USER='Link',
+-> MASTER_PASSWORD='slavepass',
+-> MASTER_PORT=3306;
+//下面两句我没加一样可以
+-> MASTER_LOG_FILE='mysql-bin.000001',
+-> MASTER_LOG_POS=2366;
+
+3.启动slave同步进程：
+mysql>start slave;
+
+4.查看slave状态：
+mysql> show slave status\G;
+
+
+*******************************************************************************************
+*	从数据库常用命令
+*******************************************************************************************	
+1、start slave 启动复制线程
+2、stop slave 停止复制线程
+3、show slave status 查看从数据库状态
+4、show master logs 查看主数据库bin-log日志
+5、change master to 动态改变到主服务器的配置
+6、show processlist 查看从数据库运行进程
+
+*******************************************************************************************
+*	mysql主从复制问题
+*******************************************************************************************
+slave have equal MySQL Server UUIDs原因及解决
+Last_IO_Error: Fatal error: The slave I/O thread stops because master and slave have equal MySQL server UUIDs; 
+问题：server-uuid重复了
+解决：删除或重命名/usr/local/mysql/data/auto.cnf文件，重新启动mysql则会重新生成auto.cnf文件
+
+
+
+
+*******************************************************************************************
+*	mysql常见问题
+*******************************************************************************************
+MySQL8分区问题
+The storage engine for the table doesn't support native partitioning
+MySQL8对分区技术的存储引擎只支持innodb和ndb
+
+https://dev.mysql.com/doc/refman/8.0/en/partitioning.html
+In MySQL 8.0, partitioning support is provided by the InnoDB and NDB storage engines.
+MySQL 8.0 does not currently support partitioning of tables using any storage engine other than InnoDB or NDB, such as MyISAM. An attempt to create a partitioned tables using a storage engine that does not supply native partitioning support fails with ER_CHECK_NOT_IMPLEMENTED.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MySQL--BENCHMARK()函数
+	MySQL有一个内置的BENCHMARK()函数，可以测试某些特定操作的执行速度。 
+	参数可以是需要执行的次数和表达式。 
+	表达式可以是任何的标量表达式，比如返回值是标量的子查询或者函数。
+	请注意：该函数只是简单地返回服务器执行表达式的时间，而不会涉及分析和优化的开销。
+	
+	该函数可以很方便地测试某些特定操作的性能，比如通过测试可以发现，MD5()比SHA1()函数要快
+		SELECT BENCHMARK(10000000, MD5('hello'));
+		SELECT BENCHMARK(10000000, SHA1('hello'));
+
+
+
+
+MySQL之alter语句用法总结
+1：删除列
+ALTER TABLE 【表名字】 DROP 【列名称】
+2：增加列
+ALTER TABLE 【表名字】 ADD 【列名称】 INT NOT NULL  COMMENT '注释说明
+3：修改列的类型信息
+ALTER TABLE 【表名字】 CHANGE 【列名称】【新列名称（这里可以用和原来列同名即可）】 BIGINT NOT NULL  COMMENT '注释说明'
+4：重命名列
+ALTER TABLE 【表名字】 CHANGE 【列名称】【新列名称】 BIGINT NOT NULL  COMMENT '注释说明'
+5：重命名表
+ALTER TABLE 【表名字】 RENAME 【表新名字】
+6：删除表中主键
+Alter TABLE 【表名字】 drop primary key
+7：添加主键
+ALTER TABLE sj_resource_charges ADD CONSTRAINT PK_SJ_RESOURCE_CHARGES PRIMARY KEY (resid,resfromid)
+8：添加索引
+ALTER TABLE sj_resource_charges add index INDEX_NAME (name);
+9: 添加唯一限制条件索引
+ALTER TABLE sj_resource_charges add unique emp_name2(cardnumber);
+10: 删除索引
+alter table tablename drop index emp_name;
+
+
+
+
+一、查找重复记录
+1、查找全部重复记录
+[plain] view plain copy 在CODE上查看代码片派生到我的代码片
+Select * From 表 Where 重复字段 In (Select 重复字段 From 表 Group By 重复字段 Having Count(*)>1)  
+2、过滤重复记录(只显示一条)
+[plain] view plain copy 在CODE上查看代码片派生到我的代码片
+Select * From HZT Where ID In (Select Max(ID) From HZT Group By Title)  
+
+注：此处显示ID最大一条记录
+
+
+二、删除重复记录
+1、删除全部重复记录（慎用）
+
+[plain] view plain copy 在CODE上查看代码片派生到我的代码片
+Delete 表 Where 重复字段 In (Select 重复字段 From 表 Group By 重复字段 Having Count(*)>1)  
+2、保留一条（这个应该是大多数人所需要的 ^_^）
+[sql] view plain copy 在CODE上查看代码片派生到我的代码片
+Delete HZT Where ID Not In (Select Max(ID) From HZT Group By Title)  
+注：此处保留ID最大一条记录
+
+
+
+/*************************************************************/
+建立数据库：
+　　1、mysql> CREATE DATABASE 库名;
+	或
+　　2、mysql> CREATE DATABASE IF NOT EXISTS my_db default charset utf8 COLLATE utf8_general_ci;
+
+/*************************************************************/
+DROP TABLE IF EXISTS `home_manager`;
+CREATE TABLE `home_manager` (
+	`id` int(11) NOT NULL AUTO_INCREMENT,
+	`created` int(11) NOT NULL DEFAULT 0,
+	`updated` int(11) NOT NULL DEFAULT 0,
+	`name` varchar(64) DEFAULT NULL,
+	`nickname` varchar(64) DEFAULT NULL,
+	`password` varchar(64) DEFAULT NULL,
+	PRIMARY KEY (`id`)
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+ALTER TABLE `home_manager` ADD `status` tinyint(1) DEFAULT 0 COMMENT "0--disabled;1--enabled;2--delete";
+ALTER TABLE `home_manager` ADD `role_id` int(11) DEFAULT 0 after `id`;
+
+DROP TABLE IF EXISTS `home_auth`;
+CREATE TABLE `home_auth` (
+	`id` int(11) NOT NULL AUTO_INCREMENT,
+	`created` int(11) NOT NULL DEFAULT 0,
+	`updated` int(11) NOT NULL DEFAULT 0,
+	`name` varchar(255) NOT NULL DEFAULT '',
+	`code` varchar(255) NOT NULL DEFAULT '',
+	`pid` int(11) NOT NULL DEFAULT 0,
+	`level` tinyint(3) NOT NULL DEFAULT 1,
+	`is_hide` tinyint(3) NOT NULL DEFAULT 0 COMMENT "0--hide;1--display",
+	PRIMARY KEY (`id`)
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+DROP TABLE IF EXISTS `home_role`;
+CREATE TABLE `home_role` (
+	`id` int(11) NOT NULL AUTO_INCREMENT,
+	`created` int(11) NOT NULL DEFAULT 0,
+	`updated` int(11) NOT NULL DEFAULT 0,
+	`name` varchar(255) NOT NULL DEFAULT '',
+	`auth_list` text NOT NULL ,
+	PRIMARY KEY (`id`)
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;

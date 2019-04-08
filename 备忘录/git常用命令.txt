@@ -35,8 +35,6 @@ git checkout -b test origin/test
 #git branch --set-upstream-to={远程分支} {本地分支}
 #eg:git branch --set-upstream-to=origin/test test
 
-git branch --set-upstream test origin/test
-
 
 git如何去除rebaseing状态
 如果想要放弃当前rebase操作，用

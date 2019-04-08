@@ -13,3 +13,49 @@
 			}
 		}
 	composer install
+
+
+------------------------------------------------------------------
+------------ Doctrine Mapping Types
+https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/basic-mapping.html#identifier-generation-strategies
+------------------------------------------------------------------
+
+------------------------------------------------------------------
+------------ 注释参考 实例解析
+------------------------------------------------------------------
+
+------------------------------------------------------------------
+------------ 注释参考 
+https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/annotations-reference.html
+------------------------------------------------------------------
+
+@Column
+	俗称表的字段,这个符号标记一个注解的实例变量为持久化的,它必须是在php文档快注释里的实例变量.这个变量里存储的任何值都会被保存起来,然后作为一个实体的生命周期的一部分从数据库里加载.
+
+	@Column中必填的属性:
+
+		type : doctrine中的类型,在php跟数据库呈现之间转换
+
+	@Column中可选的属性:
+
+		name : 这个属性对应了数据库中字段名,如果不定义 那么表字段名应该跟这个注解的变量名是一样的
+
+		length : 在string字符串类型的字段中 表示了数据库中字符串的最长长度.Doctrine本身不会验证字符串的长度.
+
+		precision : 用于十进制中表示的精度 ( 仅用于十进制的字段 )
+
+		scale : 十进制数值的范围 (仅用于十进制字段)
+
+		unique : 意如其名 是否是唯一 值只有true false,决定字段是否应该是唯一的
+
+		nullable : 是否能为NULL 跟数据库为空选项一样
+
+		columnDefinition :
+		
+		options: Array of additional options:
+			default: The default value to set for the column if no value is supplied.
+			unsigned: Boolean value to determine if the column should be capable of representing only non-negative integers (applies only for integer column and might not be supported by all vendors).
+			fixed: Boolean value to determine if the specified length of a string column should be fixed or varying (applies only for string/binary column and might not be supported by all vendors).
+			comment: The comment of the column in the schema (might not be supported by all vendors).
+			collation: The collation of the column (only supported by Drizzle, Mysql, PostgreSQL>=9.1, Sqlite and SQLServer).
+			check: Adds a check constraint type to the column (might not be supported by all vendors).

@@ -59,3 +59,7 @@ OK，一切搞定！试一下 composer install 来体验飞一般的速度吧！
 --------------------- 删除包 -----------------------------------
 安装：composer require zircote/swagger-php
 删除：composer remove zircote/swagger-php
+
+
+composer查看全局设置
+	composer config -gl

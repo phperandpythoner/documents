@@ -19,10 +19,89 @@
 ------------ Doctrine Mapping Types
 https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/basic-mapping.html#identifier-generation-strategies
 ------------------------------------------------------------------
+string: Type that maps an SQL VARCHAR to a PHP string.
+integer: Type that maps an SQL INT to a PHP integer.
+smallint: Type that maps a database SMALLINT to a PHP integer.
+bigint: Type that maps a database BIGINT to a PHP string.
+boolean: Type that maps an SQL boolean or equivalent (TINYINT) to a PHP boolean.
+decimal: Type that maps an SQL DECIMAL to a PHP string.
+date: Type that maps an SQL DATETIME to a PHP DateTime object.
+date_immutable: Type that maps an SQL DATETIME to a PHP DateTimeImmutable object.
+time: Type that maps an SQL TIME to a PHP DateTime object.
+time_immutable: Type that maps an SQL TIME to a PHP DateTimeImmutable object.
+datetime: Type that maps an SQL DATETIME/TIMESTAMP to a PHP DateTime object with the current timezone.
+datetimetz: Type that maps an SQL DATETIME/TIMESTAMP to a PHP DateTime object with the timezone specified in the value from the database.
+datetime_immutable: Type that maps an SQL DATETIME/TIMESTAMP to a PHP DateTimeImmutable object with the current timezone.
+datetimetz_immutable: Type that maps an SQL DATETIME/TIMESTAMP to a PHP DateTimeImmutable object with the timezone specified in the value from the database.
+dateinterval: Type that maps an interval to a PHP DateInterval object
+text: Type that maps an SQL CLOB to a PHP string.
+object: Type that maps an SQL CLOB to a PHP object using serialize() and unserialize()
+array: Type that maps an SQL CLOB to a PHP array using serialize() and unserialize()
+simple_array: Type that maps an SQL CLOB to a one-dimensional PHP array using implode() and explode(), with a comma as delimiter. IMPORTANT Only use this type if you are sure that your values cannot contain a ",".
+json_array: Type that maps an SQL CLOB to a PHP array using json_encode() and json_decode(). This one has been deprecated in favor of json type.
+json: Type that maps an SQL CLOB to a PHP array using json_encode() and json_decode(). An empty value is correctly represented as null
+float: Type that maps an SQL Float (Double Precision) to a PHP double. IMPORTANT: Works only with locale settings that use decimal points as separator.
+guid: Type that maps a database GUID/UUID to a PHP string. Defaults to varchar but uses a specific type if the platform supports it.
+blob: Type that maps an SQL BLOB to a PHP resource stream
+binary: Type that maps an SQL binary to a PHP resource stream
 
 ------------------------------------------------------------------
 ------------ 注释参考 实例解析
 ------------------------------------------------------------------
+多对多，双向
+/** @ORM\Entity */
+class User
+{
+    /**
+     * @ORM\Id
+     * @ORM\Column(type="integer")
+     * @ORM\GeneratedValue
+     */
+    private $id;
+
+    /**
+     * Many Users have Many Groups.
+     * @ORM\ManyToMany(targetEntity="Group", inversedBy="users")
+     * @ORM\JoinTable(name="users_groups")
+     */
+    private $groups;
+
+    public function __construct() {
+        $this->groups = new \Doctrine\Common\Collections\ArrayCollection();
+    }
+
+    // ...
+}
+
+/** @ORM\Entity */
+class Group
+{
+    /**
+     * @ORM\Id
+     * @ORM\Column(type="integer")
+     * @ORM\GeneratedValue
+     */
+    private $id;
+    /**
+     * Many Groups have Many Users.
+     * @ORM\ManyToMany(targetEntity="User", mappedBy="groups")
+     */
+    private $users;
+
+    public function __construct() {
+        $this->users = new \Doctrine\Common\Collections\ArrayCollection();
+    }
+
+    // ...
+}
+
+sql:
+     CREATE TABLE User (id INT AUTO_INCREMENT NOT NULL, PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci ENGINE = InnoDB;
+     CREATE TABLE users_groups (user_id INT NOT NULL, group_id INT NOT NULL, INDEX IDX_FF8AB7E0A76ED395 (user_id), INDEX IDX_FF8AB7E0FE54D947 (group_id), PRIMARY KEY(user_id, group_id)) DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci ENGINE = InnoDB;
+     CREATE TABLE `Group` (id INT AUTO_INCREMENT NOT NULL, PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci ENGINE = InnoDB;
+     
+     ALTER TABLE users_groups ADD CONSTRAINT FK_FF8AB7E0A76ED395 FOREIGN KEY (user_id) REFERENCES User (id) ON DELETE CASCADE;
+     ALTER TABLE users_groups ADD CONSTRAINT FK_FF8AB7E0FE54D947 FOREIGN KEY (group_id) REFERENCES `Group` (id) ON DELETE CASCADE;
 
 ------------------------------------------------------------------
 ------------ 注释参考 

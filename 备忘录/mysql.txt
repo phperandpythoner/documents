@@ -18,7 +18,29 @@
 
 
 
+*******************************************************************************************
+*	mysql创建远程视图
+*******************************************************************************************	
+配置faderated引擎
+vim /etc/my.cnf
+add: 
+[mysqld]
+federated
+重启mysql服务
 
+mysql host 192.168.158.130
+create table address ( id int(11) not null auto_increment, addr varchar(255) default null, primary key(id) )engine=innodb default charset=utf8;
+
+
+mysql host 192.168.158.147
+create table address ( id int(11) not null auto_increment, addr varchar(255) default null, primary key (id)) engine = federated default charset=utf8 CONNECTION='mysql://root:root@192.168.158.130:3306/deepin/address';
+
+create view v_address as select * from address;
+
+
+
+创建不同数据库的视图
+create view db_name1.view_name as select * from db_name2.table_name;
 
 *******************************************************************************************
 *	知识点

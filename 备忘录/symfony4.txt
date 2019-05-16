@@ -160,6 +160,10 @@ composer require symfony/ldap
 //FOSRestBundle
 composer require friendsofsymfony/rest-bundle
 
+
+https://packagist.org/packages/jms/serializer-bundle
+composer require jms/serializer-bundle
+
 ------------------------------------------------------------------
 ------------ symfony4常用库 
 ------------------------------------------------------------------

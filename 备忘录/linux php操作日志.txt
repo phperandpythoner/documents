@@ -79,6 +79,12 @@ kill -USR2 进程号
 
 
 ######################### PHP安装扩展 ######################################
+--enable-static：生成静态链接库
+--enable-shared：生成动态链接库
+
+
+如果之前有安装记录，建议先make clean ,否则可能导致安装失败
+
 $ curl -O https://xdebug.org/files/xdebug-2.5.0.tgz
 $ tar -zxf xdebug-2.5.0.tgz
 $ cd xdebug-2.5.0
@@ -89,7 +95,29 @@ $ make install
 Installing shared extensions:     /usr/lib/php/extensions/no-debug-non-zts-20131226/
 
 
+php安装freetype
+https://www.freetype.org/download.html
+如果之前有安装记录，建议先make clean ,否则可能导致安装失败
+cd php/ext/gd
+make clean
+./configure --with-php-config=/usr/local/php7/bin/php-config --with-freetype-dir=/usr/local/freetype/
+make && make install
 
+
+PHP安装JPEG
+http://www.ijg.org/ 下载
+cd jpeg/
+./configure --prefix=/usr/local/jpeg --enable-shared
+make
+make install
+如果之前有安装记录，建议先make clean ,否则可能导致安装失败
+cd php/ext/gd
+./configure --with-php-config=/usr/local/php7/bin/php-config --with-jpeg-dir=/usr/local/jpeg/
+make && make install
+
+安装gd扩展
+./configure --with-php-config=/usr/local/php7/bin/php-config --with-freetype-dir=/usr/local/freetype/ --with-jpeg-dir=/usr/local/jpeg/
+ 
 ######################### PHP其他问题 ######################################
 解决添加删除修改环境变量问题
 	编辑在/etc/profile 或者用户目录 ~/.bash_profile
@@ -235,6 +263,21 @@ redis-check-aof：检查aof日志的工具
 redis-check-dump：检查rdb日志的工具
 redis-cli：连接用的客户端
 redis-server：redis服务进程
+
+
+注册服务,开机自启
+cp /usr/local/src/redis-5.0.4/utils/redis_init_script /etc/init.d/redis
+vim /etc/init.d/redis
+	EXEC=/usr/local/redis/bin/redis-server
+	CLIEXEC=/usr/local/redis/bin/redis-cli
+	
+	CONF="/usr/local/redis/etc/${REDISPORT}.conf"
+
+chmod +x /etc/init.d/redis
+chkconfig --add redis
+chkconfig --list
+
+
 
 安装php的redis扩展
 phpize

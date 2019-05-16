@@ -1,0 +1,65 @@
+CentOS虚拟机和物理机共享文件夹实现
+
+1、  安装VMware Tools
+
+VMwareTools的安装脚本是要使用到perl的，而CentOS 6自身不带perl，所以需要自己安装。可以自己下载源代码编译，也可以直接用yum来安装。
+
+yum install perl
+
+2、虚拟机工具栏-》虚拟机-》安装VMware Tools
+
+3、新建目录(mkdir)、挂载目录(mount)、复制(cp)、解压缩(tar)等操作。
+
+mkdir /mnt/cdrom //创建目录
+
+mount /dev/cdrom /mnt/cdrom  //挂载
+
+cd /mnt/cdrom  //进入挂载目录
+
+mkdir /usr/local/vm-src //创建安装包存放文件夹
+
+cp VMwareTools-10.0.5-3228253.tar.gz /usr/local/vm-src //把挂载目录中的安装包拷贝
+
+//到存放文件夹中
+
+cd /usr/local/vm-src  //进入存放文件夹中
+
+umount /dev/cdrom    //卸载
+
+tar zxvf VMwareTools-10.0.5-3228253.tar.gz  //解压
+
+解压之后就是进入（cd）解压目录、执行脚本（./vmware-install.pl）。
+
+cd vmware-tools-distrib //进入解压问价
+
+./vmware-install.pl //执行文件
+
+4、虚拟机设置共享文件夹
+	设置-》选项-》共享文件夹-》总是启用-》添加
+	
+5、用vmware-hgfsclient命令可以看到你的共享文件夹目录，这个命令是你安装了vmwaretools成功后生成的
+
+
+*******************************************
+问题1
+有/mnt/hgfs但没有共享文件的解决方法：
+	1、先看是否挂载，如果没有则执行
+	mount /dev/cdrom /mnt/cdrom  //挂载
+	
+	2、如果已经挂载则执行
+	mount -t vmhgfs .host:/  /mnt/hgfs
+	Error: cannot mount filesystem: No such device
+	
+这时不能用mount工具挂载，而是得用vmhgfs-fuse，需要安装工具包
+yum install open-vm-tools-devel -y
+有的源的名字并不一定为open-vm-tools-devel(centos) ，而是open-vm-dkms(unbuntu)
+执行：vmhgfs-fuse .host:/ /mnt/hgfs 
+此时进入/mnt/hgfs就能看到你设置的共享文件夹了。
+
+
+
+
+*******************************************
+参考资料：
+https://www.linuxidc.com/Linux/2017-04/142897.htm
+https://www.cnblogs.com/zejin2008/p/7144514.html

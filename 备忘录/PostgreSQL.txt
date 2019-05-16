@@ -1,0 +1,66 @@
+*********************************** install *****************************************
+准备工作：创建一个用户postgres，以后启动postgres，连接postgres都使用该用户
+
+groupadd postgres
+useradd -g postgres postgres
+
+下载https://ftp.postgresql.org/pub/source/
+解压并安装，
+
+tar -xzf postgresql-9.6.3.tar.gz 
+cd postgresql-9.6.3
+./configure --prefix=/usr/local/postgresql --without-readline
+make && make install
+
+
+3、配置相关环境变量并设置权限，
+
+编辑环境变量文件，设置postgresql相关变量
+vi /etc/profile.d/postgres.sh
+
+export PGHOME=/usr/local/postgresql
+export PGDATA=/usr/local/postgresql/data
+export PGLIB=/usr/local/postgresql/lib
+export PATH=$PGHOME/bin:$PATH
+生效配置
+source /etc/profile
+chown -R postgres:postgres postgresql/
+
+
+切换用户，初始化数据库，再启动数据库。
+
+cd postgres/
+mkdir logs
+initdb -D /usr/local/postgresql/data/
+注意：如果此步出现权限问题，切换root下 执行：chown -R postgres:postgres postgresql/
+启动数据库
+pg_ctl -D /usr/local/postgresql/data/ -l /usr/local/postgresql/logs/logfile start
+
+
+4、连接数据库，查看数据库，新建数据库，新建表，插入表数据。
+
+连接数据库
+su postgres
+psql
+create database webapp;
+\c webapp
+
+新建表
+
+create table xx_user (id integer,name text,mobile text);
+
+插入数据，查询数据
+
+insert into xx_user values(1,'xxx','15011196302');
+insert into xx_user values(2,'yyy','18910909230');
+select * from xx_user;
+
+*********************************** 启动、停止数据库操作 *****************************************
+初始化数据库
+	initdb -D /usr/local/postgresql/data/
+启动数据库
+	pg_ctl -D /usr/local/postgresql/data/ -l /usr/local/postgresql/logs/logfile start
+停止数据库	
+	pg_ctl -D /usr/local/postgresql/data/ -l /usr/local/postgresql/logs/logfile stop 
+连接数据库
+	psql

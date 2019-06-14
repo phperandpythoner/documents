@@ -1,3 +1,208 @@
+************************************** 占位符 **********************************************
+普通占位符
+占位符     说明                           举例                   输出
+%v      相应值的默认格式。            Printf("%v", people)   {zhangsan}，
+%+v     打印结构体时，会添加字段名     Printf("%+v", people)  {Name:zhangsan}
+%#v     相应值的Go语法表示            Printf("#v", people)   main.Human{Name:"zhangsan"}
+%T      相应值的类型的Go语法表示       Printf("%T", people)   main.Human
+%%      字面上的百分号，并非值的占位符  Printf("%%")            %
+
+布尔占位符
+占位符       说明                举例                     输出
+%t          true 或 false。     Printf("%t", true)       true
+
+整数占位符
+占位符     说明                                  举例                       输出
+%b      二进制表示                             Printf("%b", 5)             101
+%c      相应Unicode码点所表示的字符              Printf("%c", 0x4E2D)        中
+%d      十进制表示                             Printf("%d", 0x12)          18
+%o      八进制表示                             Printf("%d", 10)            12
+%q      单引号围绕的字符字面值，由Go语法安全地转义 Printf("%q", 0x4E2D)        '中'
+%x      十六进制表示，字母形式为小写 a-f         Printf("%x", 13)             d
+%X      十六进制表示，字母形式为大写 A-F         Printf("%x", 13)             D
+%U      Unicode格式：U+1234，等同于 "U+%04X"   Printf("%U", 0x4E2D)         U+4E2D
+
+浮点数和复数的组成部分（实部和虚部）
+占位符     说明                              举例            输出
+%b      无小数部分的，指数为二的幂的科学计数法，
+        与 strconv.FormatFloat 的 'b' 转换格式一致。例如 -123456p-78
+%e      科学计数法，例如 -1234.456e+78        Printf("%e", 10.2)     1.020000e+01
+%E      科学计数法，例如 -1234.456E+78        Printf("%e", 10.2)     1.020000E+01
+%f      有小数点而无指数，例如 123.456        Printf("%f", 10.2)     10.200000
+%g      根据情况选择 %e 或 %f 以产生更紧凑的（无末尾的0）输出 Printf("%g", 10.20)   10.2
+%G      根据情况选择 %E 或 %f 以产生更紧凑的（无末尾的0）输出 Printf("%G", 10.20+2i) (10.2+2i)
+
+字符串与字节切片
+占位符     说明                              举例                           输出
+%s      输出字符串表示（string类型或[]byte)   Printf("%s", []byte("Go语言"))  Go语言
+%q      双引号围绕的字符串，由Go语法安全地转义  Printf("%q", "Go语言")         "Go语言"
+%x      十六进制，小写字母，每字节两个字符      Printf("%x", "golang")         676f6c616e67
+%X      十六进制，大写字母，每字节两个字符      Printf("%X", "golang")         676F6C616E67
+
+指针
+占位符         说明                      举例                             输出
+%p      十六进制表示，前缀 0x          Printf("%p", &people)             0x4f57f0
+
+其它标记
+占位符      说明                             举例          输出
++      总打印数值的正负号；对于%q（%+q）保证只输出ASCII编码的字符。 
+                                           Printf("%+q", "中文")  "\u4e2d\u6587"
+-      在右侧而非左侧填充空格（左对齐该区域）
+#      备用格式：为八进制添加前导 0（%#o）      Printf("%#U", '中')      U+4E2D
+       为十六进制添加前导 0x（%#x）或 0X（%#X），为 %p（%#p）去掉前导 0x；
+       如果可能的话，%q（%#q）会打印原始 （即反引号围绕的）字符串；
+       如果是可打印字符，%U（%#U）会写出该字符的
+       Unicode 编码形式（如字符 x 会被打印成 U+0078 'x'）。
+' '    (空格)为数值中省略的正负号留出空白（% d）；
+       以十六进制（% x, % X）打印字符串或切片时，在字节之间用空格隔开
+0      填充前导的0而非空格；对于数字，这会将填充移到正负号之后
+
+************************************** golang被限制的镜像解决 **********************************************
+golang官方在github上做的镜像地址：https://github.com/golang/
+
+golang.org/x 包失败解决方法 (https://github.com/golang/net 即是 https://golang.org/x/net 的镜像库)
+	mkdir -p $GOPATH/src/golang.org/x
+	cd $GOPATH/src/golang.org/x
+	git clone https://github.com/golang/net.git
+
+golang.org/x/sys/unix
+	git clone https://github.com/golang/sys.git
+
+************************************** encoding/gob **********************************************
+
+************************************** golang 三个点的用法 **********************************************
+1、变长的函数参数
+	func Sum(nums ...int) int {
+		res := 0
+		for _, n := range nums {
+			res += n
+		}
+		return res
+	}
+2、调用拥有变长参数列表的函数
+	上面调用Sum函数时，是将变长参数分开写的。如果我们有一个slice，那么我们调用时不必将slice拆开再调用，直接在slice后跟...即可：
+	primes := []int{2, 3, 5, 7}
+	fmt.Println(Sum(primes...)) // 17
+
+3、标识数组元素个数
+	stooges := [...]string{"Moe", "Larry", "Curly"} // len(stooges) == 3
+
+4、Go命令行中的通配符
+	描述包文件的通配符。在这个例子中，会单元测试当前目录和所有子目录的所有包：
+	go test ./...
+	
+	
+************************************** 网络字节序 **********************************************
+小端口诀: 高高低低 -> 高字节在高地址, 低字节在低地址
+大端口诀: 高低低高 -> 高字节在低地址, 低字节在高地址
+
+************************************** install **********************************************
+windows install:
+	1、download go1.12.5.windows-amd64.msi
+	2、cmd：
+		msiexec /i go1.12.5.windows-amd64.msi
+		
+linux install:
+	1、tar -zxvf  go1.10.3.linux-amd64.tar.gz
+	2、cp ./go /usr/local
+	3、添加/usr/loacl/go/bin目录到PATH变量中。添加到/etc/profile 或$HOME/.profile都可以
+		vim /etc/profile
+		// 在最后一行添加
+		export GOROOT=/usr/local/go
+		export PATH=$PATH:$GOROOT/bin
+		export GOPATH=/go项目
+		export PATH=$PATH:$GOPATH/bin
+		// wq保存退出后source一下
+		source /etc/profile
+
+
+
+************************************** Golang包管理工具glide **********************************************
+glide管理的工程目录在项目目录里
+
+
+安装
+$ curl https://glide.sh/get | sh
+初始化
+$ glide init
+初始化，glide扫描代码目录，创建一个glide.yaml文件，文件中记录了所有的依赖
+
+编辑配置
+$ edit glide.yaml
+通过修改glide.yaml文件，可以添加版本信息等，这一步不是必须的。
+
+解析下载包依赖
+$ glide update
+或者
+
+$ glide up
+下载和更新glide.yaml中列出的所有依赖包，并将它们放到vendor目录下。glide同时也递归获取依赖包需要的任何依赖项包括配置文件中定义的依赖项目。glide递归获取依赖，可以识别Glide、Godep、gb、gom和GPM管理的项目。
+
+当依赖被制定到特定的版本时，名为glide.lock的文件会被创建或者更新。例如，如果在glide.yaml中一个版本被指定在一个范围内(如：^1.2.3),那么glide将在glide.yaml中设定一个特定提交ID（commit id）。如此，将允许重复安装(见 glide install命令)。
+
+从获取的依赖包中移除嵌套的vendor/目录可以使用-v标记。
+
+安装特定版本
+当需要从glide.lock文件中安装制定版本的包是，可以使用install命令：
+
+glide install
+该命令将会读取glide.lock文件，当glide.lock文件和glide.yaml不同步时，如glide.yaml发生改变，glide将会提供一个警告。运行glide up命令更新依赖树时，将会重建glide.lock文件。
+
+查看glide.yaml中依赖名称
+$ glide name
+查看依赖列表
+$ glide list
+查看帮助
+$ glide help
+参看glide版本信息
+$ glide --version
+
+-----
+https://www.cnblogs.com/xiwang/p/5870941.html?hmsr=toutiao.io&utm_medium=toutiao.io&utm_source=toutiao.io
+
+************************************** configure **********************************************
+GOPATH: 最好配置到项目工作区 blockChain，如 F:\win_share\go\blockChain
+blockChain |- src
+		   |- pkg
+		   |- bin
+
+************************************** byte和rune **********************************************
+Go 语言的字符有以下两种：
+	一种是 uint8 类型，或者叫 byte 型，代表了 ASCII 码的一个字符。
+	另一种是 rune 类型，代表一个 UTF-8 字符。当需要处理中文、日文或者其他复合字符时，则需要用到 rune 类型。rune 类型实际是一个 int32。
+	使用 fmt.Printf 中的%T动词可以输出变量的实际类型，使用这个方法可以查看 byte 和 rune 的本来类型
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 引入别名
 import "fmt"  别名fmt为std  import std "fmt"
 

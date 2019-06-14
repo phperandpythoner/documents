@@ -1,3 +1,52 @@
+ 本地代码没有关联远程仓库时，使用以下步奏，并提交代码
+ git init
+ git remote add origin http://git.cqxiaokang.local/php/yund2/contract-management/contract-sign-h5.git // 使用的是http协议，不要使用ssh协议
+ git status
+ git add .
+ git commit -m 'init'
+ git push origin master:1.0
+
+
+**************************************************************************************************************
+本地分支关联远程分支，如果远程分支没有则创建
+git push --set-upstream origin master
+
+**************************************************************************************************************
+拉取或推送远程分支
+ git pull origin 1.0
+ git push origin HEAD:1.0
+
+******************************************** 更换git源 ******************************************************************
+移除源
+git remote remove origin
+添加新源
+git remote add origin git@git..gitxxx.com:fei/stic.git
+git pull
+git branch --set-upstream master origin/master
+git pull origin master??
+如果报histories什么的错误，就执行下面的
+git pull origin master --allow-unrelated-histories
+
+
+实战记录
+ git remote remove origin
+
+ git remote add origin http://git.cqxiaokang.local/php/yund2/contract-management/contract-h5.git
+
+ git pull origin 1.0
+
+ git branch --set-upstream-to master origin/1.0
+
+ git pull origin 1.0
+ git add .
+ git commit -m "111"
+ git push origin HEAD:1.0
+
+
+
+**************************************************************************************************************
+
+
 新建一个分支，并切换到该分支
 git checkout -b test{本地分支名称} origin/test{远程分支}
 

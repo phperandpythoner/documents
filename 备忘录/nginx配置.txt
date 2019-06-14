@@ -1014,3 +1014,14 @@ server {
 		deny all;
 	}
 }
+
+
+************************ Nginx支持Linux的软链接或硬链接 ************************
+在nginx.conf中 http模块中 disable_symlinks 改成off。启用链接符
+http {
+    disable_symlinks off;
+}
+
+这样我们就可以通过软链接找到里面的文件了。如果我们配置cgi。我们还需要将里面的document_root 改成 realpath_root
+fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+fastcgi_param DOCUMENT_ROOT $realpath_root;

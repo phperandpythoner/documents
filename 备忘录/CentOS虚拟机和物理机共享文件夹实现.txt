@@ -57,6 +57,11 @@ yum install open-vm-tools-devel -y
 此时进入/mnt/hgfs就能看到你设置的共享文件夹了。
 
 
+问题2、
+	mount /dev/cdrom /mnt/cdrom/
+	mount: block device /dev/cdrom is write-protected, mounting read-only
+	解决
+	mount -o remount,rw /
 
 
 *******************************************

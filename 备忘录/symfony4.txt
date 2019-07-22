@@ -147,6 +147,8 @@ composer require doctrine/doctrine-fixtures-bundle --dev
 
 composer require symfony/yaml
 
+composer require predis/predis
+
 //swagger
 composer require nelmio/api-doc-bundle
 //使用：https://symfony.com/doc/master/bundles/NelmioApiDocBundle/index.html
@@ -201,6 +203,187 @@ use Symfony\Component\Routing\Annotation\Route;
 ------------ How to Work with Doctrine Associations / Relations 
 ------------------------------------------------------------------
 
+------------------------------------------------------------------
+------------ symfony/Doctrine API
+------------------------------------------------------------------ 
+
+
+------------------------------------------------------------------
+------------ 文件上传 vich/uploader-bundle
+------------------------------------------------------------------ 
+install: composer require vich/uploader-bundle
+
+
+https://packagist.org/packages/vich/uploader-bundle
+https://github.com/dustin10/VichUploaderBundle 
+ 
+------------------------------------------------------------------
+------------ symfony/Doctrine DBAL
+------------------------------------------------------------------ 
+配置资料：
+	https://symfony.com/doc/current/reference/configuration/doctrine.html#reference-dbal-configuration
+	https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/configuration.html
+	https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/introduction.html
+
+
+Doctrine DBAL配置(packages/doctrine.yaml)
+doctrine:
+    dbal:
+        default_connection:       default
+        connections:
+            default:
+                dbname:           Symfony
+                user:             root
+                password:         null
+                host:             localhost
+                server_version:   '5.6'
+            customer:
+                dbname:           customer
+                user:             root
+                password:         null
+                host:             localhost
+                server_version:   '5.7'
+项目中的配置
+doctrine:
+    dbal:
+        default_connection: default
+        connections:
+            default:
+                schema_filter: '~^(?!messenger_messages)~'
+                url: '%env(resolve:DATABASE_URL)%'
+                driver: 'pdo_mysql'
+                server_version: '5.7'
+                charset: utf8mb4
+            yund:
+                # configure these for your database server
+                url: '%env(resolve:DATABASE_YUND_URL)%'
+                driver: 'pdo_mysql'
+                server_version: '5.7'
+                charset: utf8mb4
+------------------------------------------------------------------
+------------ symfony/messenger 备忘录
+------------------------------------------------------------------
+services.yaml:
+App\MessageHandler\NotificationHandler:
+	autoconfigure: false # 自动加载配置false表示由手动加载配置，由App\Message\Notification生产的消息只能由 App\MessageHandler\NotificationHandler处理消息
+	#autoconfigure: true # 自动加载配置true表示，由App\Message\Notification生产的消息 所有的消息处理程序都可以处理，如App\MessageHandler里面的消息处理程序
+	tags: [{ name: messenger.message_handler, handle: App\Message\Notification, bus: command.bus }] #bus: command.bus 表示处理方式
+
+#向云贷发出提现请求命令
+App\Command\CashCommand:
+	autowire: true
+	arguments:
+		$eventBus: '@event.bus' #以服务参数方式注入（怎么查看服务参数名：bin/console debug:container  | grep bus） ; @表示这个参数是 服务
+		$key: 'autoCash' #前面没有加@表示是普通参数
+		$token: '0677132d8b221430265b17debec4b7dc'
+	tags:
+		- { name: 'console.command', command: 'clearing:yundclient-cash'}
+
+messenger.yaml配置:
+framework:
+    messenger:
+        # Uncomment this (and the failed transport below) to send failed messages to this transport for later handling.
+        # failure_transport: failed
+
+
+        default_bus: command.bus
+        buses:
+            command.bus: # 主要职责为创建
+                middleware:
+                    - validation
+                    - doctrine_transaction
+            query.bus: # 主要职责为查询
+                middleware:
+                    - validation
+            event.bus: # 主要职责为更新
+                default_middleware: allow_no_handlers
+                middleware:
+                    - validation
+
+        failure_transport: failed
+
+        transports:
+            # https://symfony.com/doc/current/messenger.html#transports
+            # async: '%env(MESSENGER_TRANSPORT_DSN)%'
+            # failed: 'doctrine://default?queue_name=failed'
+            # sync: 'sync://'
+
+            async_priority_high: #异步
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                options:
+                    queue_name: high #优先传输级别
+                retry_strategy: # 重试配置
+                    max_retries: 3
+                    delay: 1000
+                    multiplier: 2
+                    max_delay: 0
+            async_priority_low: #异步
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                options:
+                    queue_name: low #优先传输级别
+
+            sync: 'sync://' #同步
+			
+			async:
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                options:
+                    queue_name: async
+                retry_strategy:
+                    max_retries: 3 #重试次数
+                    delay: 60000   #延迟60秒
+                    multiplier: 2  #在每次延迟的基础上乘以2，如第一次60s,第二次60*2，第三次60*2*2 ... 但总时间不超过最大延迟 max_delay
+                    max_delay: 300000 #最大延迟5分钟
+
+            failed: 'doctrine://default?queue_name=failed'
+
+        routing:
+            # Route your messages to the transports
+            # 'App\Message\YourMessage': async
+
+            'App\Message\Notification':  sync
+            'App\Message\ClearingNotification':  async_priority_high
+            'App\Message\OtherNotification':  async_priority_high
+            'App\Message\UnknownNotification':  async_priority_low
+
+
+
+------------------------------------------------------------------
+------------ twig 
+------------------------------------------------------------------
+twig 模板中 path 函数的使用
+{{ path('article_show', { 'slug': article.slug }) }}
+
+------------------------------------------------------------------
+------------ 动态添加服务 
+------------------------------------------------------------------
+    public function create(ContainerBuilder $container, $id, $config, $userProvider, $defaultEntryPoint)
+    {
+        $providerId = 'security.authentication.provider.personal_four_elements.' . $id;
+        $provider = new Definition(PersonalFourElementsProvider::class);
+        $provider->addArgument(new Reference($userProvider));
+        $provider->addArgument($config['provider_key']);
+        $container->setDefinition($providerId, $provider);
+
+        $listenerId = 'security.authentication.listener.personal_four_elements.'.$id;
+        $listener = new Definition(PersonalFourElementsListener::class);
+        $listener->addArgument(new Reference('security.token_storage'));
+        $listener->addArgument(new Reference('security.authentication.manager'));
+        $listener->addArgument($config['provider_key']);
+        $listener->addArgument($config['user_class']);
+        $container->setDefinition($listenerId, $listener);
+
+        return [$providerId, $listenerId, $defaultEntryPoint];
+    }
+
+
+	public function getKey()
+	{
+		return 'personal_four_elements'; //监听防火墙名称，在security里，如：
+		
+		//        h5_usercenter:
+		//			personal_four_elements:
+		//				user_class: Xiaokang\Bundle\ContractAuthenticationBundle\Entity\AuthUser
+	}
 
 ------------------------------------------------------------------
 ------------ 常见错误列表 

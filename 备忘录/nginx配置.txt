@@ -1,3 +1,20 @@
+
+
+
+
+****************************************** 错误与解决 ***********************************************************
+Nginx 403 error: directory index of [folder] is forbidden问题
+解决：
+	把
+		location / {
+		  try_files $uri $uri/ /index.html index.php;
+		} 
+	改为
+		location / {
+		  try_files $uri /index.html index.php;
+		}
+
+****************************************** 配置详解 ***********************************************************
 user nginx nginx ;
 
 Nginx用户及组：用户 组。window下不指定

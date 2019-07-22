@@ -1,3 +1,209 @@
+************************************* 参考资料 ******************************************
+https://redis.io/
+
+Redis5.0的新特性stream
+https://www.zhihu.com/question/279540635
+
+http://doc.redisfans.com/
+
+************************************* redis配置 ******************************************
+设置密码：
+	vim redis.conf
+	requirepass root #释放注释
+
+注释redis绑定
+	搜索 bind 127.0.0.1 全部注释掉
+
+禁用保护模式
+	protected-mode no
+启用保护模式
+	protected-mode yes
+	
+************************************* stream ******************************************
+增删改查
+	xadd 追加消息
+	xdel 删除消息，这里的删除仅仅是设置了标志位，不影响消息总长度
+	xrange 获取消息列表，会自动过滤已经删除的消息
+	xlen 消息长度
+	del 删除Stream
+
+eg:
+	# *号表示服务器自动生成ID，后面顺序跟着一堆key/value
+	127.0.0.1:6379> xadd codehole * name laoqian age 30  #  名字叫laoqian，年龄30岁
+	
+	127.0.0.1:6379> xlen codehole 
+	
+	127.0.0.1:6379> xrange codehole - +  # -表示最小值, +表示最大值
+	
+	127.0.0.1:6379> xrange codehole 1527849629172-0 +  # 指定最小消息ID的列表
+	
+	127.0.0.1:6379> xrange codehole - 1527849629172-0  # 指定最大消息ID的列表
+	
+	127.0.0.1:6379> xdel codehole 1527849609889-0 #删除消息
+	
+	127.0.0.1:6379> del codehole  # 删除整个Stream
+	
+独立消费	
+	# 从Stream头部读取两条消息
+	127.0.0.1:6379> xread count 2 streams codehole 0-0
+	
+	# 从Stream尾部读取一条消息，毫无疑问，这里不会返回任何消息
+	127.0.0.1:6379> xread count 1 streams codehole $
+	(nil)
+	# 从尾部阻塞等待新消息到来，下面的指令会堵住，直到新消息到来
+	127.0.0.1:6379> xread block 0 count 1 streams codehole $
+	# 我们从新打开一个窗口，在这个窗口往Stream里塞消息
+	127.0.0.1:6379> xadd codehole * name youming age 60
+	1527852774092-0
+	# 再切换到前面的窗口，我们可以看到阻塞解除了，返回了新的消息内容
+	# 而且还显示了一个等待时间，这里我们等待了93s
+	客户端如果想要使用xread进行顺序消费，一定要记住当前消费到哪里了，也就是返回的消息ID。下次继续调用xread时，将上次返回的最后一个消息ID作为参数传递进去，就可以继续消费后续的消息。block 0表示永远阻塞，直到消息到来，block 1000表示阻塞1s，如果1s内没有任何消息到来，就返回nil
+	127.0.0.1:6379> xread block 1000 count 1 streams codehole $
+
+
+创建消费组
+	Stream通过xgroup create指令创建消费组(Consumer Group)，需要传递起始消息ID参数用来初始化last_delivered_id变量。
+	
+	127.0.0.1:6379> xgroup create codehole cg1 0-0  #  表示从头开始消费
+	OK
+	# $表示从尾部开始消费，只接受新消息，当前Stream消息会全部忽略
+	127.0.0.1:6379> xgroup create codehole cg2 $
+	OK
+	127.0.0.1:6379> xinfo stream codehole  # 获取Stream信息
+	 1) length
+	 2) (integer) 3  # 共3个消息
+	 3) radix-tree-keys
+	 4) (integer) 1
+	 5) radix-tree-nodes
+	 6) (integer) 2
+	 7) groups
+	 8) (integer) 2  # 两个消费组
+	 9) first-entry  # 第一个消息
+	10) 1) 1527851486781-0
+		2) 1) "name"
+		   2) "laoqian"
+		   3) "age"
+		   4) "30"
+	11) last-entry  # 最后一个消息
+	12) 1) 1527851498956-0
+		2) 1) "name"
+		   2) "xiaoqian"
+		   3) "age"
+		   4) "1"
+	127.0.0.1:6379> xinfo groups codehole  # 获取Stream的消费组信息
+	1) 1) name
+	   2) "cg1"
+	   3) consumers
+	   4) (integer) 0  # 该消费组还没有消费者
+	   5) pending
+	   6) (integer) 0  # 该消费组没有正在处理的消息
+	2) 1) name
+	   2) "cg2"
+	   3) consumers  # 该消费组还没有消费者
+	   4) (integer) 0
+	   5) pending
+	   6) (integer) 0  # 该消费组没有正在处理的消息
+
+
+消费
+	Stream提供了xreadgroup指令可以进行消费组的组内消费，需要提供消费组名称、消费者名称和起始消息ID。它同xread一样，也可以阻塞等待新消息。
+	读到新消息后，对应的消息ID就会进入消费者的PEL(正在处理的消息)结构里，客户端处理完毕后使用xack指令通知服务器，本条消息已经处理完毕，该消息ID就会从PEL中移除。
+	# >号表示从当前消费组的last_delivered_id后面开始读
+	# 每当消费者读取一条消息，last_delivered_id变量就会前进
+	127.0.0.1:6379> xreadgroup GROUP cg1 c1 count 1 streams codehole >
+	1) 1) "codehole"
+	   2) 1) 1) 1527851486781-0
+			 2) 1) "name"
+				2) "laoqian"
+				3) "age"
+				4) "30"
+	127.0.0.1:6379> xreadgroup GROUP cg1 c1 count 1 streams codehole >
+	1) 1) "codehole"
+	   2) 1) 1) 1527851493405-0
+			 2) 1) "name"
+				2) "yurui"
+				3) "age"
+				4) "29"
+	127.0.0.1:6379> xreadgroup GROUP cg1 c1 count 2 streams codehole >
+	1) 1) "codehole"
+	   2) 1) 1) 1527851498956-0
+			 2) 1) "name"
+				2) "xiaoqian"
+				3) "age"
+				4) "1"
+		  2) 1) 1527852774092-0
+			 2) 1) "name"
+				2) "youming"
+				3) "age"
+				4) "60"
+	# 再继续读取，就没有新消息了
+	127.0.0.1:6379> xreadgroup GROUP cg1 c1 count 1 streams codehole >
+	(nil)
+	# 那就阻塞等待吧
+	127.0.0.1:6379> xreadgroup GROUP cg1 c1 block 0 count 1 streams codehole >
+	# 开启另一个窗口，往里塞消息
+	127.0.0.1:6379> xadd codehole * name lanying age 61
+	1527854062442-0
+	# 回到前一个窗口，发现阻塞解除，收到新消息了
+	127.0.0.1:6379> xreadgroup GROUP cg1 c1 block 0 count 1 streams codehole >
+	1) 1) "codehole"
+	   2) 1) 1) 1527854062442-0
+			 2) 1) "name"
+				2) "lanying"
+				3) "age"
+				4) "61"
+	(36.54s)
+	127.0.0.1:6379> xinfo groups codehole  # 观察消费组信息
+	1) 1) name
+	   2) "cg1"
+	   3) consumers
+	   4) (integer) 1  # 一个消费者
+	   5) pending
+	   6) (integer) 5  # 共5条正在处理的信息还有没有ack
+	2) 1) name
+	   2) "cg2"
+	   3) consumers
+	   4) (integer) 0  # 消费组cg2没有任何变化，因为前面我们一直在操纵cg1
+	   5) pending
+	   6) (integer) 0
+	# 如果同一个消费组有多个消费者，我们可以通过xinfo consumers指令观察每个消费者的状态
+	127.0.0.1:6379> xinfo consumers codehole cg1  # 目前还有1个消费者
+	1) 1) name
+	   2) "c1"
+	   3) pending
+	   4) (integer) 5  # 共5条待处理消息
+	   5) idle
+	   6) (integer) 418715  # 空闲了多长时间ms没有读取消息了
+	# 接下来我们ack一条消息
+	127.0.0.1:6379> xack codehole cg1 1527851486781-0
+	(integer) 1
+	127.0.0.1:6379> xinfo consumers codehole cg1
+	1) 1) name
+	   2) "c1"
+	   3) pending
+	   4) (integer) 4  # 变成了5条
+	   5) idle
+	   6) (integer) 668504
+	# 下面ack所有消息
+	127.0.0.1:6379> xack codehole cg1 1527851493405-0 1527851498956-0 1527852774092-0 1527854062442-0
+	(integer) 4
+	127.0.0.1:6379> xinfo consumers codehole cg1
+	1) 1) name
+	   2) "c1"
+	   3) pending
+	   4) (integer) 0  # pel空了
+	   5) idle
+	   6) (integer) 745505
+	   
+Stream消息太多怎么办
+	127.0.0.1:6379> xlen codehole
+	(integer) 5
+	127.0.0.1:6379> xadd codehole maxlen 3 * name xiaorui age 1
+	1527855160273-0
+	127.0.0.1:6379> xlen codehole
+	(integer) 3
+
+************************************* redis命令 ******************************************
 Redis 字符串命令
 下表列出了常用的 redis 字符串命令：
 序号	命令及描述

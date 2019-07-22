@@ -19,6 +19,130 @@
 linux命令：返回上一次目录
 cd -
 	
+******************************************* rpm ***************************************************************
+RPM 安装操作
+	命令：
+	rpm -i 需要安装的包文件名
+	举例如下：
+	rpm -i example.rpm 安装 example.rpm 包；
+	rpm -iv example.rpm 安装 example.rpm 包并在安装过程中显示正在安装的文件信息；
+	rpm -ivh example.rpm 安装 example.rpm 包并在安装过程中显示正在安装的文件信息及安装进度；
+
+RPM 查询操作
+	命令：
+	rpm -q …
+	附加查询命令：
+	a 查询所有已经安装的包以下两个附加命令用于查询安装包的信息；
+	i 显示安装包的信息；
+	l 显示安装包中的所有文件被安装到哪些目录下；
+	s 显示安装版中的所有文件状态及被安装到哪些目录下；以下两个附加命令用于指定需要查询的是安装包还是已安装后的文件；
+	p 查询的是安装包的信息；
+	f 查询的是已安装的某文件信息；
+	举例如下：
+	rpm -qa | grep tomcat4 查看 tomcat4 是否被安装；
+	rpm -qip example.rpm 查看 example.rpm 安装包的信息；
+	rpm -qif /bin/df 查看/bin/df 文件所在安装包的信息；
+	rpm -qlf /bin/df 查看/bin/df 文件所在安装包中的各个文件分别被安装到哪个目录下；
+
+RPM 卸载操作
+	命令：
+	rpm -e 需要卸载的安装包
+	在卸载之前，通常需要使用rpm -q …命令查出需要卸载的安装包名称。
+	举例如下：
+	rpm -e tomcat4 卸载 tomcat4 软件包
+	
+RPM 升级操作
+	命令：
+	rpm -U 需要升级的包
+	举例如下：
+	rpm -Uvh example.rpm 升级 example.rpm 软件包
+
+RPM 验证操作
+	命令：
+	rpm -V 需要验证的包
+	举例如下：
+	rpm -Vf /etc/tomcat4/tomcat4.conf
+	输出信息类似如下：
+	S.5....T c /etc/tomcat4/tomcat4.conf
+	其中，S 表示文件大小修改过，T 表示文件日期修改过。限于篇幅，更多的验证信息请您参考rpm 帮助文件：man rpm
+
+RPM 的其他附加命令
+	--force 强制操作 如强制安装删除等；
+	--requires 显示该包的依赖关系；
+	--nodeps 忽略依赖关系并继续操作；
+
+******************************************* packages安装 ***************************************************************
+
+1、cmake安装
+ wget https://cmake.org/files/v3.11/cmake-3.11.4.tar.gz
+ tar xzvf cmake-3.11.4.tar.gz
+ cd cmake-3.11.4
+ ./bootstrap
+ gmake
+ gmake install
+
+参考资料：https://cmake.org/download/
+
+
+2、使用cmake安装rabbitmq-c
+	1、解压，进入解压后的目录
+	2、mkdir build && cd build # 这一步是在rabbitmq-c的根目录下创建一个build子目录
+	3、cmake .. # 这一步是让cmake根据../CMakeList.txt，即rabbitmq-c的根目录下的CMakeList.txt创建Makefile文件，Makefile文件会被创建到build目录中
+	4、cmake --build . # 这一步是真正的build rabbitmq-c库的，注意，不要漏掉结尾的点 '.'
+	
+	完成后，build目录下会出现librabbitmq、examples 和 tests 子目录。其中librabbitmq中包含生成的librabbitmq.so等文件；examples中包含amqp_bind、amqp_consumer、amqp_exchange_declare、amqp_listen、amqp_listenq、amqp_producer、amqp_rpc_sendstring_client、amqp_sendstring 和 amqp_unbind 可执行文件
+	
+	5、cmake -DCMAKE_INSTALL_PREFIX=/usr/local/rabbitmq-c ..
+	6、cmake --build .  --target install # 这一步是真正的build rabbitmq-c库的，注意，不要漏掉点 ‘.‘
+	
+	到这里就已经安装完成了。不过这里有一个坑。你可以看一下/usr/local/rabbitmq-c下的目录只有include和lib64。因为后面编译安装amqp扩展的时候系统会到/usr/local/rabbitmq-c/lib目录下搜索依赖库，导致错误。所以这里需要加一步：
+	
+	cd /usr/local/rabbitmq-c
+	ln -s lib64 lib
+	
+	
+参考资料：
+	https://github.com/alanxz/rabbitmq-c/
+	https://segmentfault.com/a/1190000012348103
+	
+3、安装rabbitmq
+	1、yum -y install socat
+	2、cd /etc/yum.repos.d/
+	3、vim rabbitmq_erlang.repo
+
+	# To use the most recent version on CentOS 7:
+	# In /etc/yum.repos.d/rabbitmq_erlang.repo
+	[rabbitmq_erlang]
+	name=rabbitmq_erlang
+	baseurl=https://packagecloud.io/rabbitmq/erlang/el/7/$basearch
+	repo_gpgcheck=1
+	gpgcheck=0
+	enabled=1
+	gpgkey=https://packagecloud.io/rabbitmq/erlang/gpgkey
+	sslverify=1
+	sslcacert=/etc/pki/tls/certs/ca-bundle.crt
+	metadata_expire=300
+
+	[rabbitmq_erlang-source]
+	name=rabbitmq_erlang-source
+	baseurl=https://packagecloud.io/rabbitmq/erlang/el/7/SRPMS
+	repo_gpgcheck=1
+	gpgcheck=0
+	enabled=1
+	gpgkey=https://packagecloud.io/rabbitmq/erlang/gpgkey
+	sslverify=1
+	sslcacert=/etc/pki/tls/certs/ca-bundle.crt
+	metadata_expire=300
+	To install the package:
+
+	4、yum install erlang
+	5、rpm -ivh rabbitmq-server-3.7.15-1.el7.noarch.rpm
+
+参考资料：
+	https://www.rabbitmq.com/install-rpm.html
+	https://github.com/rabbitmq/erlang-rpm
+	https://blog.csdn.net/tangyaliang11/article/details/85652889
+	
 ******************************************* 不常用命令安装 ***************************************************************
 
 shasum

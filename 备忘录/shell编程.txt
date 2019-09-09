@@ -9,6 +9,20 @@
 -le            //小于等于
 
 #*****************************************************
+
+#******************** git *********************************
+shell脚本下如何获取git当前分支的两种方法
+	方法一
+		git symbolic-ref --short -q HEAD
+		eg:
+			getCurBranch=`git symbolic-ref --short -q HEAD`
+			echo ${getBranch}
+
+	方法二
+		br=`git branch | grep "*"`
+		echo ${br/* /}
+		
+
 #*****************************************************
 Shell中判断文件,目录是否存在
 	-e filename 如果 filename存在，则为真 

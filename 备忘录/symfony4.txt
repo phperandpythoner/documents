@@ -207,6 +207,20 @@ use Symfony\Component\Routing\Annotation\Route;
 ------------ symfony/Doctrine API
 ------------------------------------------------------------------ 
 
+------------------------------------------------------------------
+------------ symfony 开发备忘录
+------------------------------------------------------------------ 
+$request->attributes->get('_route') //获取当前访问url的别名
+
+
+------------------------------------------------------------------
+------------ bin/console 常用命令解释 
+------------------------------------------------------------------ 
+打印配置
+bin/console config:dump-reference
+
+安全配置
+bin/console config:dump-reference security
 
 ------------------------------------------------------------------
 ------------ 文件上传 vich/uploader-bundle
@@ -216,7 +230,77 @@ install: composer require vich/uploader-bundle
 
 https://packagist.org/packages/vich/uploader-bundle
 https://github.com/dustin10/VichUploaderBundle 
- 
+
+------------------------------------------------------------------
+------------ symfony框架如何关联bundle里实体
+------------------------------------------------------------------ 
+在bundle的build方法添加
+	<?php
+
+namespace Xiaokang\Bundle\ContractOrmBundle;
+
+use Doctrine\Bundle\DoctrineBundle\DependencyInjection\Compiler\DoctrineOrmMappingsPass;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\HttpKernel\Bundle\Bundle;
+use function realpath;
+use Xiaokang\Bundle\ContractOrmBundle\DependencyInjection\Compiler\ContractPass;
+use Xiaokang\Bundle\ContractOrmBundle\DependencyInjection\ContractOrmExtension;
+
+class ContractOrmBundle extends Bundle
+{
+
+    public function build(ContainerBuilder $container)
+    {
+        parent::build($container);
+
+        $container->addCompilerPass(new ContractPass());
+		//映射方法
+        $container->addCompilerPass(DoctrineOrmMappingsPass::createAnnotationMappingDriver(
+            ['Xiaokang\\Bundle\\ContractOrmBundle\\Entity'],
+            [realpath(__DIR__) . '/Entity']
+        ));
+    }
+}
+
+------------------------------------------------------------------
+------------ 如何在bundle里给服务添加方法
+------------------------------------------------------------------ 
+实例：
+<?php
+namespace Xiaokang\Bundle\ContractOrmBundle\DependencyInjection\Compiler;
+use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Reference;
+use Xiaokang\Bundle\ContractOrmBundle\Handle\ContractHandle;
+class ContractPass implements CompilerPassInterface
+{
+    public function process(ContainerBuilder $container)
+    {
+        if (!$container->has('xiaokang.handle.contract')) {
+            return;
+        }
+        $definition = $container->getDefinition('xiaokang.handle.contract');
+        $taggedServices = $container->findTaggedServiceIds('contract.entity');
+        foreach ($taggedServices as $id => $tags) {
+            foreach ($tags as $attributes) {
+                $definition->addMethodCall('addContract', [new Reference($id), $attributes]);
+            }
+        }
+    }
+}
+
+服务： 
+    xiaokang.handle.contract:
+        class: 'Xiaokang\Bundle\ContractOrmBundle\Handle\ContractHandle'
+        public: false
+        autowire: true
+		
+服务里的方法：
+    public function addContract(ContractInterface $contract, array $attributes)
+    {
+        $contract->setTemplateNo($attributes['template'])->setType($attributes["type"])->setSubdivision($attributes["subdivision"]);
+        $this->contracts[$attributes['id']] = $contract;
+    }		
 ------------------------------------------------------------------
 ------------ symfony/Doctrine DBAL
 ------------------------------------------------------------------ 
@@ -353,6 +437,10 @@ framework:
 twig 模板中 path 函数的使用
 {{ path('article_show', { 'slug': article.slug }) }}
 
+使用path函数带有多个参数时会出现把&转义成&amp;的解决：使用raw原样输出
+{{ path('upload_img_file_view', {'a':1, 'b':2}) }} =》/upload/img/file?a=1&amp;b=2
+{{ path('upload_img_file_view', {'a':1, 'b':2})|raw }}
+
 ------------------------------------------------------------------
 ------------ 动态添加服务 
 ------------------------------------------------------------------
@@ -384,7 +472,74 @@ twig 模板中 path 函数的使用
 		//			personal_four_elements:
 		//				user_class: Xiaokang\Bundle\ContractAuthenticationBundle\Entity\AuthUser
 	}
+	
+------------------------------------------------------------------
+------------ 登陆问题 
+------------------------------------------------------------------	
+1、用户登陆时，输入错误密码后再次输入正确密码未跳转到referer页面
+解决：
+	控制器：
+	public function login(Request $request, CsrfTokenManagerInterface $csrfTokenManager)
+    {
+        $data = $this->login_parameter($request, $csrfTokenManager);
+        $session = $data['session'];
+        return $this->render('login/account_login.html.twig', [
+            '_mobile_pwd_token' => $data['csrfToken'],
+            '_target_path' => $request->query->has('_target_path') ? $request->get('_target_path') : $request->headers->get('referer'), //处理跳转
+            'error' => isset($data['error']) ? $data['error']->getMessage() : '',
+            'last_username'=>(null === $session) ? '' : $session->get(Security::LAST_USERNAME)
+        ]);
+    }
+	登陆表单模板：
+	<input type="hidden" name="_target_path" value="{{ _target_path }}"/>
+	<input type="hidden" name="_failure_path" value="{{ path('sign.in', {'_target_path': _target_path}) }}"/>
 
+2、当用户登陆后，打开投诉建议窗口，填写数据，然后再打开另一个页面，退出登录，然后提交投诉建议，这里检测到未登录，应该跳转登录
+解决：在防火墙添加入口点，通过$request->isXmlHttpRequest()判断是否是ajax请求，如果是则重定向到指定url；在客户端用ajax里error:function(e){处理跳转逻辑}
+	security配置：
+		entry_point: 'App\EntryPoint\XkxdWebEntryPoint'
+	services配置：
+		    App\EntryPoint\XkxdWebEntryPoint:
+			public: true
+			arguments:
+			- '@security.http_utils'
+			- 'sign.in' #登陆路由名称
+	入口点程序：
+		<?php
+		namespace App\EntryPoint;
+		use Symfony\Component\HttpFoundation\JsonResponse;
+		use Symfony\Component\HttpFoundation\RedirectResponse;
+		use Symfony\Component\HttpFoundation\Request;
+		use Symfony\Component\Security\Core\Exception\AuthenticationException;
+		use Symfony\Component\Security\Http\EntryPoint\AuthenticationEntryPointInterface;
+		use Symfony\Component\Security\Http\HttpUtils;
+		class XkxdWebEntryPoint implements AuthenticationEntryPointInterface
+		{
+			private $httpUtils;
+			private $loginPath;
+			public function __construct(HttpUtils $httpUtils, string $loginPath)
+			{
+				$this->httpUtils = $httpUtils;
+				$this->loginPath = $loginPath;
+			}
+			public function start(Request $request, AuthenticationException $authException = null)
+			{
+				$uri = $this->httpUtils->generateUri($request, $this->loginPath);
+				if ($request->isXmlHttpRequest()){
+					return JsonResponse::create(['url'=>$uri], 302);
+				}
+				return new RedirectResponse($uri,302) ;
+			}
+		}
+	ajax程序：
+		error: function (e) {
+			if ((e.status == 302 || e.status == 301) && e.responseJSON.url != null){
+				window.location.href = e.responseJSON.url;
+			}
+			//...
+		}
+	
+	
 ------------------------------------------------------------------
 ------------ 常见错误列表 
 ------------------------------------------------------------------
@@ -406,3 +561,13 @@ twig 模板中 path 函数的使用
 解决：
 	configureListFields：
 		->add('author.name') //关系属性 ManyToOne-> private $author;
+		
+3、No encoder has been configured for account （没有为帐户配置编码器）
+解决：
+	security:
+		encoders:
+			Symfony\Component\Security\Core\User\User: plaintext
+			FOS\UserBundle\Model\UserInterface: sha512
+			//如下案例
+			Xiaokang\UserCenter\Bundle\Yund1UserLoginBundle\Entity\YundUser:
+				algorithm: bcrypt

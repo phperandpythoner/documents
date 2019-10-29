@@ -441,6 +441,17 @@ twig 模板中 path 函数的使用
 {{ path('upload_img_file_view', {'a':1, 'b':2}) }} =》/upload/img/file?a=1&amp;b=2
 {{ path('upload_img_file_view', {'a':1, 'b':2})|raw }}
 
+
+*********************
+在twig中使用模板函数时，带有参数，用js替换参数的处理
+如：{{ path('setting.blacklists', {id:1}) }}
+解决：在外面定义一个变量，带有参数，然后再替换参数
+window._template = {
+	'_detail' : '{{ path('setting.templates.detail', {templateId:"_templateId"}) }}'
+};
+
+window._template._detail.replace(/_templateId/, value.id)
+
 ------------------------------------------------------------------
 ------------ 动态添加服务 
 ------------------------------------------------------------------
@@ -571,3 +582,9 @@ twig 模板中 path 函数的使用
 			//如下案例
 			Xiaokang\UserCenter\Bundle\Yund1UserLoginBundle\Entity\YundUser:
 				algorithm: bcrypt
+				
+4.The service "xxx..." has a dependency on a non-existent service "templating".
+#app\config\packages\framework.yaml			
+framework:
+	templating:
+		engines: ['twig']

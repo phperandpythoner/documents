@@ -1,0 +1,49 @@
+*****************************************************************************************************
+* 配置
+*****************************************************************************************************
+App\Entity\Book:
+    itemOperations:
+        get:
+            method: 'GET'
+            path: '/grimoire/{id}'
+            requirements:
+                id: '\d+'
+            defaults:
+                color: 'brown'
+            host: '{subdomain}.api-platform.com'
+            schemes: ['https']
+            options:
+                my_option: 'my_option_value'
+            status: 200 # customize the HTTP status code to send
+        put:
+            method: 'PUT'
+            path: '/grimoire/{id}/update'
+            hydra_context: { foo: 'bar' }
+            requirements:
+                id: '\d+'
+		#创建自定义操作和控制器		
+		post_publication:
+            method: POST
+            path: /books/{id}/publication
+            controller: App\Controller\CreateBookPublication
+			#<序列化组 您可能需要为自定义操作使用不同的序列化组。只需配置正确normalization_context和/或denormalization_context操作
+			normalization_context:
+                groups: ['publication']
+			#>序列化组
+			read: false #实体检索,如果要绕过自定义操作中实体的自动检索，可以"read"=false在操作属性中进行设置
+			
+*****************************************************************************************************
+* filter
+*****************************************************************************************************
+date:
+	strictly_after:大于
+	after:大于等于
+	strictly_before:小于
+	before:小于等于 
+	
+after：开始时间
+before：结束时间
+	
+$createDate = $request->get('createDate');
+$date_start = $createDate['after'];
+$date_end = $createDate['strictly_before'];

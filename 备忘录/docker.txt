@@ -7,8 +7,17 @@ docker rmi 镜像名字或 镜像id（IMAGE ID）
 
 docker ps -a 它会列出所有容器，包括已经停止的容器
 
+docker ps 列出已启动的容器
 
+docker create 创建容器，不运行
 
+docker run 创建容器并运行 == docker create 和 docker start
+
+docker start 运行容器
+
+//停止、关闭容器
+docker kill [OPTIONS] CONTAINER [CONTAINER...]
+docker stop [OPTIONS] CONTAINER [CONTAINER...]
 
 -------------------------------------- install --------------------------------
 安装

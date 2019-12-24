@@ -1,4 +1,86 @@
 *******************************************************************************************
+*	mysql查询最近半年数据,本季度,本年等数据
+*******************************************************************************************	
+SELECT * FROM table where inputtime>DATE_SUB(CURDATE(), INTERVAL 1 WEEK)           --一周
+SELECT * FROM table where inputtime>DATE_SUB(CURDATE(), INTERVAL 3 MONTH)          --三月
+SELECT * FROM table where inputtime>DATE_SUB(CURDATE(), INTERVAL 1 YEAR)           --一年
+
+mysql查询当月数据
+SELECT * FROM 表名 WHERE date_format(时间字段, ‘%Y-%m’) = DATE_FORMAT(now(), ‘%Y-%m’)
+
+
+1 、 查看当天日期
+select current_date();
+
+2、 查看当天时间
+select current_time();
+
+3、查看当天时间日期
+select current_timestamp();
+
+4、查询当天记录
+select * from 表名 where to_days(时间字段名) = to_days(now());
+
+5、查询昨天记录
+select * from 表名 where to_days( now( ) ) – to_days( 时间字段名) <= 1
+
+6、查询7天的记录
+select * from 表名 where date_sub(curdate(), interval 7 day) <= date(时间字段名) 
+
+7、查询近30天的记录
+select * from 表名 where date_sub(curdate(), interval 30 day) <= date(时间字段名)
+
+8、查询本月的记录
+select * from 表名 where date_format( 时间字段名, ‘%y%m’ ) = date_format( curdate( ) , ‘%y%m’ )
+
+9、查询上一月的记录
+select * from 表名 where period_diff( date_format( now( ) , ‘%y%m’ ) , date_format( 时间字段名, ‘%y%m’ ) ) =1
+
+10、查询本季度数据
+select * from 表名 where quarter(create_date)=quarter(now());
+
+11、查询上季度数据
+select * from 表名 where quarter(create_date)=quarter(date_sub(now(),interval 1 quarter));
+
+12、查询本年数据
+select * from 表名  where year(create_date)=year(now());
+
+13、查询上年数据
+select * from 表名 where year(create_date)=year(date_sub(now(),interval 1 year));
+
+14、查询当前这周的数据
+select * from 表名 where yearweek(date_format(submittime,'%y-%m-%d')) = yearweek(now());
+
+15、查询上周的数据
+select * from 表名 where yearweek(date_format(submittime,'%y-%m-%d')) = yearweek(now())-1;
+
+16、查询当前月份的数据
+select * from 表名   where date_format(submittime,'%y-%m')=date_format(now(),'%y-%m')
+
+17、查询距离当前现在6个月的数据
+select name,submittime from enterprise where submittime between date_sub(now(),interval 6 month) and now()
+
+
+
+mysql按年,月,日分组(group by)统计,count函数内添加筛选条件及其其他函数,使用方法
+create_time ?为数据库一时间相关字段,需要根据这个字段将查询到的数据按照年(月/日等)分组:
+时间格式:
+
+SELECT DATE_FORMAT(create_time,'%Y%m%d') days,COUNT(id) COUNT FROM role GROUP BY days;
+SELECT DATE_FORMAT(create_time,'%Y%u') weeks,COUNT(id) COUNT FROM role GROUP BY weeks;
+SELECT DATE_FORMAT(create_time,'%Y%m') months,COUNT(id) COUNT FROM role GROUP BY months
+时间戳格式
+
+SELECT FROM_UNIXTIME(create_time,'%Y%m%d') days,COUNT(id) COUNT FROM role GROUP BY days;
+SELECT FROM_UNIXTIME(create_time,'%Y%u') weeks,COUNT(id) COUNT FROM role GROUP BY weeks;
+SELECT FROM_UNIXTIME(create_time,'%Y%m') months,COUNT(id) COUNT FROM role GROUP BY months
+https://blog.csdn.net/MR_L_0927/article/details/87718605
+
+
+mysql group by 年 月 日
+GROUP BY YEAR(record_date), MONTH(record_date)
+
+*******************************************************************************************
 *	mysql常用命令
 *******************************************************************************************	
 1、查看MySQL插件

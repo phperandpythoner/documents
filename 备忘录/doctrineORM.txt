@@ -46,6 +46,22 @@ blob: Type that maps an SQL BLOB to a PHP resource stream
 binary: Type that maps an SQL binary to a PHP resource stream
 
 ------------------------------------------------------------------
+------------ 子查询 addSelect
+------------------------------------------------------------------
+$em = $this->getEntityManager();
+$query = $em->createQueryBuilder();
+$list = $query->select('books.id, books.nextId, books.serialNumber, books.accountId, books.type, books.amount, books.category, books.originNo, books.originalBalance, books.latestBalance, books.thirdPartyType, books.state, books.createDatetime',
+	'a.userId',
+	'u.userName, u.realName')
+	->addSelect("(".$em->createQueryBuilder()->select('ui.userName')->from(UserInfo::class, 'ui')->andWhere($query->expr()->eq('ui.id', 'u.pid'))->getQuery()->getDQL().") AS recommand_username")
+	->from(AccountBooks::class, 'books')
+	->innerJoin(Account::class, 'a', Expr\Join::WITH, 'a.id = books.accountId')
+	->innerJoin(UserInfo::class, 'u', Expr\Join::WITH, 'u.id = a.userId')
+	->andWhere($query->expr()->eq('books.category', ':category'))
+	->setParameter('category', AccountBooks::WITHDRAWAL_CATEGORY)
+			
+			
+------------------------------------------------------------------
 ------------ 注释参考 实例解析
 ------------------------------------------------------------------
 多对多，双向

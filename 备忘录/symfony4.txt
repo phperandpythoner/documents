@@ -3,6 +3,7 @@ composer create-project symfony/framework-standard-edition my_project_name
  
 ------------symfony4 install
 	composer create-project symfony/website-skeleton my-project
+	composer create-project symfony/website-skeleton my-project 4.3.*
 
 ------------Annotation Routes
 	 composer require annotations
@@ -16,6 +17,52 @@ composer create-project symfony/framework-standard-edition my_project_name
 ------------package
 // composer config -g repo.packagist composer https://packagist.phpcomposer.com
 composer require symfony/asset
+
+
+------------------------------------------------------------------
+在bundle里使用模板
+------------------------------------------------------------------
+<?php
+namespace Usercenter\UserBundle\Controller;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Routing\Annotation\Route;
+class SecurityController extends AbstractController{
+
+    public function viewLogin(){
+        return $this->render('@UsercenterUser/security/login.html.twig');
+    }
+}
+
+说明：
+1、@UsercenterUser 指的是UsercenterUserBundle类
+<?php
+namespace Usercenter\UserBundle;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\HttpKernel\Bundle\Bundle;
+use Doctrine\Bundle\DoctrineBundle\DependencyInjection\Compiler\DoctrineOrmMappingsPass;
+class UsercenterUserBundle extends Bundle
+{
+    public function build(ContainerBuilder $container)
+    {
+        parent::build($container);
+
+        $container->addCompilerPass(DoctrineOrmMappingsPass::createAnnotationMappingDriver(
+            ['Usercenter\\UserBundle\\Entity'],
+            [\realpath(__DIR__) . '/Entity']
+        ));
+    }
+}
+
+2、@UsercenterUser路径指的是 E:\workstation\codeWorkstations\php\exam-project\exam\vendor\usercenter\user-bundle/Resources/views
+
+
+
+------------------------------------------------------------------
+
+------------------------------------------------------------------
+
+
+
 
 
 ------------------------------------------------------------------

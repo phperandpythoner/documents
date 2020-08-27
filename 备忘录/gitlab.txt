@@ -1,0 +1,195 @@
+root
+phper123456
+
+
+------------------------------------ gitlab centoos搭建教程 -------------------------------------------------
+1. 安装依赖软件
+	yum -y install policycoreutils openssh-server openssh-clients postfix
+
+2.设置postfix开机自启，并启动，postfix支持gitlab发信功能
+	systemctl enable postfix && systemctl start postfix
+	
+3.下载gitlab安装包，然后安装
+	centos 6系统的下载地址:https://mirrors.tuna.tsinghua.edu.cn/gitlab-ce/yum/el6
+	centos 7系统的下载地址:https://mirrors.tuna.tsinghua.edu.cn/gitlab-ce/yum/el7
+	我在此处选择了一个较新的版本11.3.3，以方便大家后续的升级
+
+	下载rpm包并安装:
+	wget https://mirrors.tuna.tsinghua.edu.cn/gitlab-ce/yum/el7/gitlab-ce-11.3.3-ce.0.el7.x86_64.rpm
+	rpm -i gitlab-ce-11.3.3-ce.0.el7.x86_64.rpm
+	
+4.修改gitlab配置文件指定服务器ip和自定义端口：
+	vim /etc/gitlab/gitlab.rb
+	修改成如下：
+	IP地址+端口号： external_url 'http://192.168.0.217:8010'
+	
+5.重置并启动GitLab
+	执行：
+	gitlab-ctl reconfigure
+	gitlab-ctl restart
+
+6.访问页面
+	打开浏览器，输入前面配置的地址，如果本机可以访问，但其他电脑访问不了，应该是防火墙拦截了端口，可以在防火墙添加端口：
+	/sbin/iptables -I INPUT -p tcp --dport 8010 -j ACCEPT
+	如果访问的时候报502错误，加上这句：
+	chmod -R 755 /var/log/gitlab
+
+7.修改root密码
+
+https://blog.csdn.net/tg928600774/article/details/83069153
+------------------------------------  -------------------------------------------------
+
+
+------------------------------------ gitlab配置ssh -------------------------------------------------
+参考网站：
+https://www.jianshu.com/p/94b39f278214
+
+------------------------------------ gitlab配置域名访问 -------------------------------------------------
+修改配置文件
+	vim /etc/gitlab/gitlab.rb
+	
+## 写好域名
+    external_url 'http://xxx.xxx.xxx.xxx'
+## 停掉他自带的nginx
+    nginx['enable'] = false
+	
+配置域名的配置文件
+	以nginx为例
+
+# gitlab socket 文件地址
+upstream gitlab {
+  # 7.x 版本在此位置
+  # server unix:/var/opt/gitlab/gitlab-rails/tmp/sockets/gitlab.socket;
+  # 8.0 位置
+  server unix://var/opt/gitlab/gitlab-rails/sockets/gitlab.socket;
+}
+
+server
+    {
+        listen 80;
+        #listen [::]:80;
+        server_name XXX.XXX.XXX ;
+        index index.html index.htm index.php default.html default.htm default.php;
+        root  /opt/gitlab/embedded/service/gitlab-rails/public;
+
+        #include rewrite/none.conf;
+        #error_page   404   /404.html;
+
+        # Deny access to PHP files in specific directory
+        #location ~ /(wp-content|uploads|wp-includes|images)/.*\.php$ { deny all; }
+
+        #include enable-php.conf;
+
+         location / {
+                 # serve static files from defined root folder;.
+                 # @gitlab is a named location for the upstream fallback, see below
+                try_files $uri $uri/index.html $uri.html @gitlab;
+         }
+
+        location @gitlab {
+                 # If you use https make sure you disable gzip compression 
+                 # to be safe against BREACH attack
+
+                 proxy_read_timeout 300; # Some requests take more than 30 seconds.
+                 proxy_connect_timeout 300; # Some requests take more than 30 seconds.
+                 proxy_redirect     off;
+
+                 proxy_set_header   X-Forwarded-Proto $scheme;
+                 proxy_set_header   Host              $http_host;
+                 proxy_set_header   X-Real-IP         $remote_addr;
+                 proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+                 proxy_set_header   X-Frame-Options   SAMEORIGIN;
+
+                 proxy_pass http://gitlab;
+         }
+
+        location ~ .*\.(gif|jpg|jpeg|png|bmp|swf)$
+        {
+            expires      30d;
+        }
+
+        location ~ .*\.(js|css)?$
+        {
+            expires      12h;
+        }
+
+        location ~ /.well-known {
+            allow all;
+        }
+
+        location ~ /\.
+        {
+            deny all;
+        }
+
+        #access_log  /home/wwwlogs/XXX.XXX.XXX.log;
+    } 
+
+gitlab-ctl reconfigure
+
+最后配置hosts
+192.168.241.199 gitlab.liuyang.com	
+
+参考网站：
+https://blog.csdn.net/qq_39256527/article/details/81236520
+------------------------------------  -------------------------------------------------
+
+
+
+
+------------------------------------ 使用composer拉取gitlab本地搭建的项目配置 -------------------------------------------------
+*******************************************************************************************
+*	配置composer的认证信息
+*******************************************************************************************	
+https://www.cnblogs.com/pheye/p/10479439.html	
+编辑~/.composer/auth.json（如果没有该文件，就直接创建） 
+
+{
+    "bitbucket-oauth": {},
+    "github-oauth": {},
+    "gitlab-oauth": {
+    },
+    "gitlab-token": {
+      "git.papamk.com": "<你的Private Token>"
+    },
+    "http-basic": {},
+    "gitlab-domains":["git.papamk.com"]
+}	
+
+git.papamk.com替换为gitlab地址
+
+*******************************************************************************************
+*	配置config.json (C:\Users\Administrator\AppData\Roaming\Composer)
+*******************************************************************************************		
+{
+    "config": {
+        "disable-tls": false,
+		"secure-http": false,
+		"gitlab-domains": [
+			"gitlab.liuyang.com"
+		]
+		},
+    "repositories": {
+        "packagist": {
+            "type": "composer",
+            "url": "https://mirrors.aliyun.com/composer/"
+        }
+    }
+}
+
+
+修改 composer 全局 config  
+因为 git.weshineapp.com 使用 HTTP 协议, 所以secure-http 要设为false
+设置gitlab-domains 告诉 Composer 相应的域名可以使用 GitLab API 
+
+参考网站：https://blog.csdn.net/panjiapengfly/article/details/81203821
+
+
+
+------------------------------------  -------------------------------------------------
+------------------------------------  -------------------------------------------------
+------------------------------------  -------------------------------------------------
+------------------------------------  -------------------------------------------------
+------------------------------------  -------------------------------------------------
+------------------------------------  -------------------------------------------------
+------------------------------------  -------------------------------------------------

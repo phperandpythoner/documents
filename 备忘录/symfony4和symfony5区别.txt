@@ -1,0 +1,203 @@
+*************************************************************************************************
+* 启动symfony自带的 server web区别
+*************************************************************************************************
+symfony4 可以使用 php bin/console server:start 或 server:run
+
+symfony5 则需要安装 Symfony Local Web Server 插件
+https://symfony.com/doc/current/setup/symfony_server.html
+https://symfony.com/download
+
+ cd my-project/
+ symfony server:start
+
+
+*************************************************************************************************
+* symfony4 doctrine实体管理器 Symfony\Bridge\Doctrine\RegistryInterface 接口在
+* symfony5中移除了，使用 Doctrine\Persistence\ManagerRegistry
+*************************************************************************************************
+symfony4：
+<?php
+
+
+namespace Xiaokang\Bundle\ContractOrmBundle\Manager;
+
+use Doctrine\Common\Persistence\Mapping\ClassMetadata;
+use Doctrine\ORM\EntityManager;
+use Symfony\Bridge\Doctrine\RegistryInterface;
+
+abstract class AbstractManager
+{
+    /**
+     * @var EntityManager
+     */
+    protected $manager;
+
+    /*
+     * @var string
+     */
+    private $name;
+
+    /**
+     * AbstractManager constructor.
+     * @param RegistryInterface $registry
+     * @param string|null $name
+     */
+    public function __construct(RegistryInterface $registry, string $name = null)
+    {
+        $this->name = $name;
+        $this->manager = $registry->getManager($name);
+    }
+
+    /**
+     * @param $class
+     * @return mixed
+     * @throws \Exception
+     */
+    public function getMetadata($class): ClassMetadata
+    {
+        return $this->manager->getMetadataFactory()->getMetadataFor($class);
+    }
+
+    /**
+     * @return EntityManager
+     */
+    public function getEntityManager(): EntityManager
+    {
+        return $this->manager;
+    }
+
+    /**
+     * @param $class
+     * @return bool
+     */
+    public function hasMetadata($class): bool
+    {
+        return $this->manager->getMetadataFactory()->hasMetadataFor($class);
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getName(): ?string
+    {
+        return $this->name;
+    }
+}
+
+-------------------------------
+symfony5:
+
+
+<?php
+namespace Avlibrary\Bundle\AvLibraryOrmBundle\Manager;
+
+use Doctrine\Common\Persistence\Mapping\ClassMetadata;
+use Doctrine\ORM\EntityManager;
+use Doctrine\Persistence\ManagerRegistry;
+
+abstract class AbstractManager{
+    /**
+     * @var EntityManager
+     */
+    protected $manager;
+
+    /*
+     * @var string
+     */
+    private $name;
+
+    /**
+     * AbstractManager constructor.
+     * @param ManagerRegistry $registry
+     * @param string|null $name
+     */
+    public function __construct(ManagerRegistry $registry, string $name = null)
+    {
+        $this->name = $name;
+        $this->manager = $registry->getManager($name);
+    }
+
+    /**
+     * @param $class
+     * @return mixed
+     * @throws \Exception
+     */
+    public function getMetadata($class): ClassMetadata
+    {
+        return $this->manager->getMetadataFactory()->getMetadataFor($class);
+    }
+
+    /**
+     * @return EntityManager
+     */
+    public function getEntityManager(): EntityManager
+    {
+        return $this->manager;
+    }
+
+    /**
+     * @param $class
+     * @return bool
+     */
+    public function hasMetadata($class): bool
+    {
+        return $this->manager->getMetadataFactory()->hasMetadataFor($class);
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getName(): ?string
+    {
+        return $this->name;
+    }
+}
+
+*************************************************************************************************
+*
+*************************************************************************************************
+
+*************************************************************************************************
+*
+*************************************************************************************************
+
+
+*************************************************************************************************
+*
+*************************************************************************************************
+
+*************************************************************************************************
+*
+*************************************************************************************************
+
+
+*************************************************************************************************
+*
+*************************************************************************************************
+
+*************************************************************************************************
+*
+*************************************************************************************************
+
+
+*************************************************************************************************
+*
+*************************************************************************************************
+
+*************************************************************************************************
+*
+*************************************************************************************************
+
+
+*************************************************************************************************
+*
+*************************************************************************************************
+
+*************************************************************************************************
+*
+*************************************************************************************************
+
+
+*************************************************************************************************
+*
+*************************************************************************************************

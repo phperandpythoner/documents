@@ -14,6 +14,7 @@ vi /etc/sysconfig/network-script/ifcfg-ens33
 	GATEWAY=192.168.100.2
 	DNS1=192.168.100.1
 	DNS2=8.8.8.8
+	ONBOOT=yes
 
 其他dns
 114.114.114.114
@@ -21,3 +22,48 @@ vi /etc/sysconfig/network-script/ifcfg-ens33
 1、解决宿主主机不能ping同虚拟主机问题
 	虚拟机——》编辑——》虚拟网络编辑器——》还原默认设置，然后再配置 子网ip，设置 NAT设置
 	
+	
+	
+	
+
++++++++++++++++++++++++++++++++ 新安装contosmini版本需要的配置 ++++++++++++++++++++++++++++++++++++++
+
+step1：
+vi /etc/sysconfig/network-script/ifcfg-ens33
+	BOOTPROTO=NONE
+	IPADDR=192.168.100.143
+	NETMASK=255.255.255.0
+	GATEWAY=192.168.100.2
+	ONBOOT=yes
+	DNS1=114.114.114.114
+	DNS2=8.8.8.8
+	
+step2：
+（可选）如果yum源地址速度慢可以更改国内源地址
+	1、备份 
+	mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup 
+
+	2、进入yum源配置文件所在的文件夹
+	[root@localhost ~]# cd /etc/yum.repos.d/
+	CentOS 5 
+	wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-5.repo 
+	或者 
+	curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-5.repo 
+	CentOS 6 
+	wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-6.repo 
+	或者 
+	curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-6.repo 
+	CentOS 7 
+	wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo 
+	或者 
+	curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo 
+	
+	3、之后运行yum makecache生成缓存
+	
+step3：安装ifconfig
+	yum search ifconfig
+	yum -y install net-tools.x86_64
+	
+	
+其他安装：
+	yum -y install vim*

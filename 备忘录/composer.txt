@@ -1,3 +1,8 @@
+------------------ composer安装 -----------------
+https://docs.phpcomposer.com/00-intro.html#Installation-*nix
+
+
+------------------------------------------------------------------
 https://pkg.phpcomposer.com/
 
 镜像用法
@@ -202,8 +207,34 @@ https://www.cnblogs.com/pheye/p/10479439.html
     "http-basic": {},
     "gitlab-domains":["git.papamk.com"]
 }	
-	
-	
+
+
+*******************************************************************************************
+*	配置config.json (C:\Users\Administrator\AppData\Roaming\Composer)
+*******************************************************************************************		
+{
+    "config": {
+        "disable-tls": false,
+		"secure-http": false,
+		"gitlab-domains": [
+			"gitlab.liuyang.com"
+		]
+		},
+    "repositories": {
+        "packagist": {
+            "type": "composer",
+            "url": "https://mirrors.aliyun.com/composer/"
+        }
+    }
+}
+
+
+修改 composer 全局 config  
+因为 git.weshineapp.com 使用 HTTP 协议, 所以secure-http 要设为false
+设置gitlab-domains 告诉 Composer 相应的域名可以使用 GitLab API 
+
+参考网站：https://blog.csdn.net/panjiapengfly/article/details/81203821
+
 *******************************************************************************************
 *	composer解决http协议不能下载问题
 *******************************************************************************************
@@ -257,3 +288,43 @@ Personal Access Tokens问题
  The requested package xiaokang/system-sms-bundle 2.0.* exists as xiaokang/system-sms-bundle[v1.0.3, v1.0.2, v1.0.1] but these are rejected by your constraint.
  解决："xiaokang/system-sms-bundle": "^1.0" ，在最新的分支上加上标签，如：分支2.0，新增标签v1.0.4，然后执行composer update
  
+
+*******************************************************************************************
+*	composer 拉取gitlab项目进入第三方目录
+*******************************************************************************************
+1、在第三方项目根目录新建composer.json文件 
+{
+  "name": "exam/exam-model",
+  "license": "",
+  "description": "exam model",
+  "type": "library",
+  "authors": [],
+  "require": {
+    "php": "^7.2.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Exam\\Model\\": "src/"
+    }
+  },
+  "extra": {
+    "branch-alias": {
+      "dev-1.0": "1.0.x-dev"
+    }
+  }
+}
+
+2、编辑项目composer.json文件，新增 "exam/exam-model": "1.0.*-dev" 和 repositories内容
+{
+    "require": {
+        "exam/exam-model": "1.0.*-dev"
+    },
+    "repositories": [
+        {
+            "type": "gitlab",
+            "url": "http://gitlab.liuyang.com/exam/exam-model.git"
+        }
+    ]
+}
+
+3、composer update 更新拉取项目

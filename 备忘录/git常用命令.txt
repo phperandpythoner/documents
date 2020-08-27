@@ -4,12 +4,17 @@
  git status
  git add .
  git commit -m 'init'
- git push origin master:1.0
+ git pull origin master --allow-unrelated-histories   //fatal: couldn't find remote ref master 表示gitlab没有master分支，需要创建一个
+ git push origin master:1.0   //1.0表示是在gitlab项目上新建分支并推送到1.0分支
 
 
 **************************************************************************************************************
 本地分支关联远程分支，如果远程分支没有则创建
 git push --set-upstream origin master
+
+************************************************** Git Clone 命令直接使用用户名:密码 ************************************************************
+git clone https://用户名:密码@git.coding.net/sample/HelloWorld.git
+
 
 **************************************************************************************************************
 拉取或推送远程分支
@@ -49,6 +54,13 @@ fatal: refusing to merge unrelated histories
 	其实这个问题是因为 两个 根本不相干的 git 库， 一个是本地库， 一个是远端库， 然后本地要去推送到远端， 远端觉得这个本地库跟自己不相干， 所以告知无法合并
 解决：
 	git pull origin master --allow-unrelated-histories #加上后面这个选项允许不相关历史提交（master为远程分支名）
+	
+	
+
+****************************************   实测--常用命令 **********************************************************************
+git删除远程分支
+git push origin --delete [branch_name]
+
 
 **************************************************************************************************************
 

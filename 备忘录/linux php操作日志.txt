@@ -1,10 +1,16 @@
+http://mirrors.sohu.com/php/
+
+-------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------
 
 yum -y install libjpeg libjpeg-devel libpng libpng-devel freetype freetype-devel libxml2 libxml2-devel mysql pcre-devel
 yum -y install openssl openssl-devel
 yum -y install curl curl-devel
 yum -y install libxslt-devel*
+yum -y install gcc gcc-c++
 
- 
+
  ./configure --prefix=/usr/local/php7 \
  --with-curl \
  --with-freetype-dir \
@@ -49,9 +55,49 @@ yum -y install libxslt-devel*
  cp /usr/local/php7/etc/php-fpm.d/www.conf.default /usr/local/php7/etc/php-fpm.d/www.conf
  cp -R ./sapi/fpm/php-fpm /etc/init.d/php-fpm
  
- 
- 
 
+
+php7.4需要的软件包
+yum -y install  sqlite-devel
+#国外镜像，无法下载
+#yum -y install http://mirror.centos.org/centos-7/7.7.1908/cloud/x86_64/openstack-queens/oniguruma-6.7.0-1.el7.x86_64.rpm
+#yum -y install http://mirror.centos.org/centos-7/7.7.1908/cloud/x86_64/openstack-queens/oniguruma-devel-6.7.0-1.el7.x86_64.rpm
+yum -y install http://down.24kplus.com/linux/oniguruma/oniguruma-6.7.0-1.el7.x86_64.rpm
+yum -y install http://down.24kplus.com/linux/oniguruma/oniguruma-devel-6.7.0-1.el7.x86_64.rpm
+备用下载：
+oniguruma：http://down.24kplus.com/linux/oniguruma/oniguruma-6.7.0-1.el7.x86_64.rpm
+oniguruma-devel：http://down.24kplus.com/linux/oniguruma/oniguruma-devel-6.7.0-1.el7.x86_64.rpm 
+
+
+############################################################# 加入环境变量 #################################################################
+1、打开环境变量配置文件
+vim /etc/profile
+
+2、将php安装目录添加进环境变量
+export PATH=$PATH:/usr/local/php/bin
+
+3、刷新配置文件使之生效
+source /etc/profile
+
+
+查找PHP安装信息
+whereis php
+
+############################################################# swoole install #################################################################
+https://wiki.swoole.com/#/environment
+
+yum -y install autoconf
+
+cd swoole-src && \
+phpize && \
+./configure && \
+make && sudo make install
+
+
+/usr/local/php7/lib/php/extensions/no-debug-non-zts-20190902/
+
+#############################################################  #################################################################
+#############################################################  #################################################################
 
 ######################### php扩展安装 ######################################
 
@@ -199,6 +245,16 @@ nginx的配置文件nginx.conf在
 	#自动显示目录  
 	autoindex on;
 	
+############################## Nginx安装2 #################################
+#下载
+wget https://nginx.org/download/nginx-1.15.9.tar.gz
+tar -xvf nginx-1.15.9.tar.gz
+cd nginx-1.15.9
+#编译安装
+./configure --prefix=/usr/local/webserver/nginx --with-http_stub_status_module --with-http_ssl_module --with-pcre=/usr/local/src/pcre-8.42 
+make && make install
+#查看版本
+/usr/local/webserver/nginx/sbin/nginx -v
 	
 ------------------nginx常见问题---------------------
 
@@ -405,6 +461,9 @@ eg:A temporary password is generated for root@localhost: GeMfL>dtq9v>
 2、修改密码
 输入命令 set password=password(‘xxxx')
 
+mysql 8.0.13 os 命令行修改mysql密码的方法
+ALTER USER 'root'@'localhost' IDENTIFIED BY '新密码';
+
 八、window远程访问Linux虚拟机的mysql
 1、关闭防火墙 (或者给防火墙开放端口)，这样window才能连接上
 输入命令 systemctl stop firewalld.service
@@ -413,17 +472,62 @@ eg:A temporary password is generated for root@localhost: GeMfL>dtq9v>
 输入命令 mysql>grant all privileges on *.* to root@'%' identified by '123456';
 
 
-
 mysql>flush privileges;
  
 3、远程链接数据库，或者重启(init 6)。
 输入命令：mysql –hIP地址 -uroot -p123456
 
+补充：安装时会遇到的问题
+	Can't connect to local MySQL server through socket '/tmp/mysql.sock'
+	这个问题一般是mysqld没有成功启动
+	可以使用查看
+	ps -aux |grep mysqld
+
+	
+	如果socket=/var/lib/mysql/mysql.sock没有找到，可以更改为
+	vim /etc/my.cnf
+		socket=/tmp/mysql.sock
+	
+	
+	如果log-error=/var/log/mariadb/mariadb.log没有创建对应的目录
+	则可以更改为log-error=/usr/local/mysql/log/mariadb/mariadb.log
+	chown -R mysql:mysql /usr/local/mysql/log/mariadb/mariadb.log
+	
+
+	如果pid-file=/var/run/mariadb/mariadb.pid 没有/var/run/mariadb/这个目录，这可以创建
+	mkdir /var/run/mariadb
+	chmod 777 /var/run/mariadb
 
 
 
+mysql8.0远程访问授权
+在安设置mysql8.0远程访问过程中遇到的问题：
+1、ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '. to 'username'@'%'' at line 1
+
+解决方案：
+1、新建远程访问用户：create user 'username'@'%' identified by 'password'; //create user 'windows_dev'@'%' identified by '123456';
+2、给远程访问用户授权：GRANT ALL PRIVILEGES ON *.* TO 'username'@'%'; //GRANT ALL PRIVILEGES ON *.* TO 'windows_dev'@'%';
+3、刷新权限：FLUSH PRIVILEGES;
+
+2、ERROR 1410 (42000): You are not allowed to create a user with GRANT
+msyql8.0好像自己给自己授权不行了，新建一个账号吧，并给这个账号授权。
+最后还有一个问题，如果用Navicat连接的回报不支持caching_sha2_password验证方式的错误。
+将远程访问用户的验证方式改为： msyql_native_password 
+执行：
+ALTER USER 'username'@'%' IDENTIFIED WITH mysql_native_password BY 'password'; //ALTER USER 'windows_dev'@'%' IDENTIFIED WITH mysql_native_password BY '123456';
+FLUSH PRIVILEGES;
 
 
+解决Navicat for MySQL 连接 Mysql 8.0.11 出现1251- Client does not support authentication protocol 错误
+	create user 'windows_phper'@'%' identified with mysql_native_password by '123456';
+	grant all privileges on *.* to 'windows_phper'@'%' with grant option;
+	FLUSH PRIVILEGES;
+	ALTER USER 'windows_phper'@'%' IDENTIFIED WITH mysql_native_password BY '123456';
+	FLUSH PRIVILEGES;
+
+参考网站：
+	https://blog.csdn.net/seventopalsy/article/details/80195246
+	https://blog.csdn.net/xairen/article/details/84621751
 
 *********** 常见问题 ****************
 mount /dev/cdrom /mnt/cdrom/

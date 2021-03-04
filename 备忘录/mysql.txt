@@ -277,19 +277,25 @@ MySQL 8.0 does not currently support partitioning of tables using any storage en
 
 
 
+--------------------------------------------------------------------
 
 
+解决连接MySQL时报"The server requested authentication method unknown to the client”错误
+问题原因
+（1）过去 MySQL 的密码认证插件是“mysql_native_password”。
+（2）而当 mysql 到了 8.0 版以上时，密码认证插件使用的是“caching_sha2_password”。可是当前有很多数据库工具和链接包都不支持这个。
 
+	create user 'windows_phper'@'%' identified with mysql_native_password by '123456';
+	grant all privileges on *.* to 'windows_phper'@'%' with grant option;
+	FLUSH PRIVILEGES;
+	ALTER USER 'windows_phper'@'%' IDENTIFIED WITH mysql_native_password BY '123456';
+	FLUSH PRIVILEGES;
+	
+	然后使用 windows_phper用户，密码123456 这个mysql账户连接
 
-
-
-
-
-
-
-
-
-
+--------------------------------------------------------------------
+--------------------------------------------------------------------
+--------------------------------------------------------------------
 
 
 

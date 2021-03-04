@@ -4,7 +4,7 @@ laravel docs
 	https://learnku.com/laravel/wikis/16722
 	
 	
-	
+	alt+7
 ---------------------------------------------------------------------------------------------	
 通过 Composer 创建
 composer create-project --prefer-dist laravel/laravel blog
@@ -19,6 +19,359 @@ composer global require hirak/prestissimo
 
 
 ---------------------------------------------------------------------------------------------	
+可以用symfony命令启动(需要安装symfony)
+symfony server:start
+---------------------------------------------------------------------------------------------	
+
+
+
+---------------------------------------------------------------------------------------------
+****************** 创建中间件 **********************
+1、创建中间件
+php artisan make:middleware Menus
+2、自定义中间件（路由中间件），在App\Http\Kernel.php
+    protected $routeMiddleware = [
+        'auth' => \App\Http\Middleware\Authenticate::class,
+        'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
+        'bindings' => \Illuminate\Routing\Middleware\SubstituteBindings::class,
+        'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class,
+        'can' => \Illuminate\Auth\Middleware\Authorize::class,
+        'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
+        'password.confirm' => \Illuminate\Auth\Middleware\RequirePassword::class,
+        'signed' => \Illuminate\Routing\Middleware\ValidateSignature::class,
+        'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
+        'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
+
+        //自定义Rbac鉴权路由中间件
+        'authenticationrbac' => \App\Http\Middleware\AuthenticationRbac::class,
+        'menus' => \App\Http\Middleware\Menus::class,
+    ];
+3、注册好以后，将路由中间件应用到路由中去
+	Route::middleware(['auth', 'authenticationrbac'])
+4、测试以及编码
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---------------------------------------------------------------------------------------------
+****************** Laravel 文件上传 **********************
+https://laravelacademy.org/post/22108
+
+
+
+
+public function upload(Request $request){
+	if ($request->isMethod('POST')) { //判断是否是POST上传，应该不会有人用get吧，恩，不会的
+
+		//在源生的php代码中是使用$_FILE来查看上传文件的属性
+		//但是在laravel里面有更好的封装好的方法，就是下面这个
+		//显示的属性更多
+		$fileCharater = $request->file('source');
+
+		if ($fileCharater->isValid()) { //括号里面的是必须加的哦
+			//如果括号里面的不加上的话，下面的方法也无法调用的
+
+			//获取文件的扩展名 
+			$ext = $fileCharater->getClientOriginalExtension();
+
+			//获取文件的绝对路径
+			$path = $fileCharater->getRealPath();
+
+			//定义文件名
+			$filename = date('Y-m-d-h-i-s').'.'.$ext;
+
+			//存储文件。disk里面的public。总的来说，就是调用disk模块里的public配置
+			Storage::disk('public')->put($filename, file_get_contents($path));
+			
+			//返回文件URL
+			//http://127.0.0.1:8000/storage/2021/03/02/20210302045107603dc43b807dd.png
+			URL::asset(Storage::url($filename));
+			
+			返回文件URL
+			// /storage/2021/03/02/20210302045107603dc43b807dd.png
+			Storage::url($filename);
+		}
+	}
+	return view('upload');
+}
+
+
+****************** Laravel+layui图片上传及VerifyCsrfToken报错问题的解决**********************
+https://blog.csdn.net/hgb24660/article/details/102457149
+
+<!-- 一般在表单提交时，都会存放一个隐藏的输入框 -->
+ <input type="hidden" name="_token" class="tag_token" value="{{ csrf_token() }}">
+
+<script>
+layui.use('upload', function(){
+  var upload = layui.upload;
+  $ = layui.jquery;
+  var tag_token = $(".tag_token").val();		//ajax 请求前，先获取 csrf_token() 值 
+  //执行实例
+  var uploadInst = upload.render({
+    elem: '#test1' //绑定元素
+    ,url: '{{ url("student/uploads")}}' //上传接口
+    ,data:{'_token':tag_token}			//ajax 请求时，将该值作为数据的一部分传输过去
+    ,exts: 'jpg|png|gif'
+    ,done: function(res){
+        if(res.code == 200){
+            layer.msg('上传成功!');
+            $('#imgname').attr('src','/uploads/'+res.data);
+            $('#img').attr('value',res.data);
+        }
+    }
+    ,error: function(){
+      //请求异常回调
+    }
+  });
+});
+</script>
+
+
+---------------------------------------------------------------------------------------------
+****************** Laravel Ajax请求总结 **********************
+Ajax请求方法
+1、页面需要添加
+<meta name="csrf-token" content="{{ csrf_token() }}">
+
+2、如果是form表单需要添加
+{{ csrf_field() }} 或
+<input type="hidden" name="_token" value="'.csrf_token().'">
+
+3、Ajax请求方法
+function submitForms() {
+	$.ajax({
+		type:'POST',
+		url: "{{ url(route('backend.role.create')) }}",
+		dataType: 'json',
+		headers: {
+			'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+		},
+		data:{
+			"name":name,
+			"active":active,
+		},
+		success: function (data) {
+			console.log(data);
+		}
+	});
+}
+
+4、Ajax请求返回
+return response()->json([‘code’=> ‘success’]);
+
+Ajax请求注意问题
+1、当采用按钮点击进行Ajax请求，如下：
+<button class="btn btn-primary" type="button" onclick="submitForms()">Submit form</button>
+注意：一定要设置：type=“button”，否则会默认为：type=“submit”,请求完成后会进行页面重定向，进行
+页面刷新
+
+https://blog.csdn.net/zlshmily/article/details/105513800
+---------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------
+****************** Laravel表单验证规则可以使用sql **********************
+
+protected function validateUser(Request $request)
+{
+	$request->validate([
+		'question' => [
+			'required',
+			Rule::unique('favors')->where(function($query) use ($request) {
+				return $query->where('userid', $request->user()->id)->where('question', $request->question);
+			})
+		],
+	]);
+}
+
+		
+public function rules()
+{
+	$request = $this->request;
+	return [
+            'name' => [
+                'required',
+                Rule::unique('power')->where(function ($query) use ($request){
+                    return $query->where('id', '!=', $request->get('id'))->where('name', $request->get('name'));
+                }),
+            ],
+            'is_nav' => ['required'],
+        ];
+}
+public function rules()
+{
+	$request = $this->request;
+	return [
+		'name' => [
+			'required',
+			'unique:power,name,'.$this->request->get('id'),
+		],
+		'is_nav' => ['required'],
+	];
+}
+
+https://learnku.com/laravel/t/46387
+
+---------------------------------------------------------------------------------------------
+****************** Laravel Request Validation: The given data was invalid **********************
+
+use Illuminate\Support\Arr;
+use Illuminate\Validation\ValidationException;
+if ($exception instanceof ValidationException) {
+      return response(Arr::first(Arr::collapse($exception->errors())));
+}
+
+参考资料
+https://learnku.com/laravel/t/20879
+
+
+在自定义验证类时，同样抛出The given data was invalid错误信息，并且在控制器中无法通过异常捕获错误信息
+解决：
+	在自定义类中 app\Http\Requests\UpdateAuthPut.php 重新写方法
+	
+	use Illuminate\Contracts\Validation\Validator;
+	use Illuminate\Validation\ValidationException;
+	
+	/**
+     * @param Validator $validator
+     */
+    public function failedValidation(Validator $validator)
+    {
+        try {
+            throw (new ValidationException($validator));
+        }catch (ValidationException $validationException){
+        }
+    }
+	然后在控制器中，使用
+	try{
+	
+	}catch (ValidationException $validationException){
+		if ($validationException instanceof ValidationException) {
+			return response()->json(['code'=>'err', 'msg'=>Arr::first(Arr::collapse($validationException->errors()))]);
+		}
+	}
+
+
+	
+---------------------------------------------------------------------------------------------
+
+---------------------------------------------------------------------------------------------
+****************** blade函数列表 **********************
+route($name, $parameters = [], $absolute = true)
+
+url($path = null, $parameters = [], $secure = null)
+
+
+
+
+---------------------------------------------------------------------------------------------
+
+---------------------------------------------------------------------------------------------
+****************** 数据库迁移 **********************
+php artisan make:migration create_users_table --create=users
+
+新增字段
+php artisan make:migration add_votes_to_users_table --table=users
+
+或者 这种方式新增字段（posts表新增image_path字段）
+php artisan make:migration alter_posts_table_add_image_path --table=posts
+
+
+删除字段
+php artisan make:migration del_votes_to_users_table --table=users
+
+修改字段
+php artisan make:migration change_votes_to_users_table --table=users
+
+在字段后面新增change(),如：$table->uuid('category_id')->change();
+
+php artisan migrate --seed
+
+
+---------------------------------------------------------------------------------------------
+
+---------------------------------------------------------------------------------------------	
+laravel提交表单后提示
+
+
+后台：
+return back()->with('success','成功添加');
+
+前端：
+@if (Session::has('success'))
+	layer.msg("{{Session::get('success')}}");
+@endif
+
+
+---------------------------------------------------------------------------------------------	
+Laravel验证码
+安装 mews/captcha
+composer require "mews/captcha"
+
+注册：
+在config/app.php下的providers数组里面追加一下代码
+Mews\Captcha\CaptchaServiceProvider::class,
+
+**aliases **数组里面追加
+'Captcha' => Mews\Captcha\Facades\Captcha::class,
+
+在composer命令行下执行
+php artisan vendor:publish
+生成配置文件captcha.php
+
+前端引用
+ <img src="{{captcha_src()}}" style="cursor: pointer" onclick="this.src='{{captcha_src()}}'+Math.random()">
+
+
+https://www.jianshu.com/p/a36e7c9dad49
+https://learnku.com/articles/23704
+
+
+---------------------------------------------------------------------------------------------
+laravel自定义后台登录
+
+https://www.jianshu.com/p/a57e134ca5f1
+https://blog.csdn.net/mengziwudao/article/details/107822888
+	
+
+
+	
+---------------------------------------------------------------------------------------------	
+---------------------------------------------------------------------------------------------	
+---------------------------------------------------------------------------------------------	
+---------------------------------------------------------------------------------------------	
+
+
+---------------------------------------------------------------------------------------------
+使用Laravel时引入CSS和JS文件
+引入css 默认引入public目录
+
+<link rel="stylesheet" href="{{URL::asset('css/xxx.css')}}">
+引入js 默认引入public目录
+
+<script type="text/javascript" src="{{URL::asset('js/xxx.js')}}"></script>
+引入外面的的css 把http:去掉即可
+
+<link rel="stylesheet" href="{{URL::asset('//域名/css/css.css')}}">
+引入外面的的js 把http:去掉即可
+
+<script type="text/javascript" src="{{URL::asset('//域名/js/js.js')}}"></script>
+---------------------------------------------------------------------------------------------
+
+	
 ---------------------------------------------------------------------------------------------	
 ---------------------------------------------------------------------------------------------	
 

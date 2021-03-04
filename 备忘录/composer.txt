@@ -190,6 +190,17 @@ composer config
 composer clear-cache 清除composer缓存
 	
 	
+	
+遇到问题？
+1. 建议先将Composer版本升级到最新：
+composer self-update
+2. 执行诊断命令：
+composer diagnose
+3. 清除缓存：
+composer clear
+4. 若项目之前已通过其他源安装，则需要更新 composer.lock 文件，执行命令：
+composer update --lock
+	
 *******************************************************************************************
 *	配置composer的认证信息
 *******************************************************************************************	

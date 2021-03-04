@@ -1,0 +1,163 @@
+官网
+https://ckeditor.com/
+
+--------------------------------------------------------------------
+使用教程
+
+1、引入js文件（中文翻译文件）
+<script src="ckeditor.js"></script>
+<script src="translations/zh-cn.js"></script>
+
+2、页面上的元素
+<div id="toolbar-container"></div>
+<div id="editor" ><p></p></div>
+
+3、js调用
+
+var newEditor;
+DecoupledEditor
+	.create( document.querySelector( '#editor' ), {
+		language: 'zh-cn',
+	})
+	.then( editor => {
+		const toolbarContainer = document.querySelector( '#toolbar-container' );
+
+		toolbarContainer.appendChild( editor.ui.view.toolbar.element );
+
+		newEditor = editor;
+	} )
+	.catch( error => {
+		//console.error( error );
+	} );
+
+--------------------------------------------------------------------
+//获取ckeditor内容
+ var content = editor.getData();
+//设置ckeditor内容
+ editor.setData(content);
+//设置ckeditor编辑器为只读
+ editor.isReadOnly = true;
+ 
+--------------------------------------------------------------------
+说明：
+1、CKEditor5 Ajax提交获取数据
+	CKEditor5在form提交的时候会自动把数据赋值给textarea，但Ajax提交的时候，CKEditor5不会执行赋值操作，需要在Ajax提交之前手动获取数据，在CKEditor5的手册中写的很清楚
+	获取数据的时候使用editor.getData()方法就可以了
+
+
+--------------------------------------------------------------------
+在layui中使用
+
+<script>
+        var newEditor;
+
+        DecoupledEditor
+            .create( document.querySelector( '#editor' ), {
+                language: 'zh-cn',
+            })
+            .then( editor => {
+                const toolbarContainer = document.querySelector( '#toolbar-container' );
+
+                toolbarContainer.appendChild( editor.ui.view.toolbar.element );
+
+                newEditor = editor;
+            } )
+            .catch( error => {
+                //console.error( error );
+            } );
+
+        layui.use('form', function(){
+            var form = layui.form;
+
+            //监听提交
+            form.on('submit(formItem)', function(data){
+
+				//因为cheditor编辑器通过ajax提交时，需要自己构建富文本里的内容到ajax字段里，如以下几行代码
+                var field = data.field;
+                //获取编辑器内容
+                const content = newEditor.getData();
+                field = Object.assign(field, { content: content });
+
+                $.ajax({
+                    type:'POST',
+                    url: "{{ route('article.store') }}",
+                    dataType: 'json',
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    data:field,
+                    success: function (responseData) {
+                        if (responseData.code == 'err'){
+                            layui.use('layer', function(){
+                                var layer = layui.layer;
+
+                                layer.open({
+                                    title: '提示',
+                                    content: responseData.msg,
+                                    icon:2
+                                });
+                            });
+                        }
+                        if (responseData.code == 'suc'){
+                            window.location.href = '{{ route("article.index") }}';
+                        }
+                    }
+                });
+
+                return false;
+            });
+        });
+    </script>
+
+
+--------------------------------------------------------------------
+在cheditor中提交表单
+
+//编辑器editor
+ClassicEditor
+    .create(document.querySelector('#content'), {
+        language: 'zh-cn',
+        ckfinder: {
+            uploadUrl: 'CKEditor/Upload'
+        }
+    })
+    .then(editor => {
+        window.editor = editor;
+        //监听提交
+        form.on('submit(layuiadmin-article-submit)', function (data) {
+            var field = data.field; //获取提交的字段
+            //获取编辑器内容
+            const content = editor.getData();
+            if (!content)
+                return layer.msg("请编辑内容", { icon: 2 });
+            if (!content)
+                return layer.msg("内容不可为空", { icon: 2 });
+            field = Object.assign(field, { content: content });
+            admin.req({
+                url: 'article/add'
+                , type: 'post'
+                , data: { info: field }
+                , done(res) {
+                    layer.close(index);
+                    layui.table.reload('LAY-article-list'); //重载表格
+                    //提交完毕销毁editor
+                    editor.destroy().catch(error => {
+                        console.log(error);
+                    });
+                }
+            });
+        });
+        form.render();
+    })
+    .catch(error => {
+        console.error(error);
+    });
+
+
+https://blog.csdn.net/qq_14853875/article/details/98241593
+
+--------------------------------------------------------------------
+
+--------------------------------------------------------------------
+--------------------------------------------------------------------
+--------------------------------------------------------------------

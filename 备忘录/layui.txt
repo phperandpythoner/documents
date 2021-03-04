@@ -1,0 +1,33 @@
+
+ajax回调函数中调用layui弹出层有时报layer未定义问题
+在此处layer.open就一直报layer未定义异常，此时我们需要引入正确的js文件。只要引入layui.all.js即可。
+
+
+*******************************************************************************************************************
+常见错误：content: jqXHR.responseJSON.errors.name, 这样使用报错
+error: function (jqXHR, textStatus, errorThrown) {
+	if (jqXHR.status == 422){
+		layui.use('layer', function(){
+			var layer = layui.layer;
+
+			layer.open({
+				title: '提示',
+				content: jqXHR.responseJSON.errors.name,
+				icon:2
+			});
+		});
+	}
+}
+修改后正确
+error: function (jqXHR, textStatus, errorThrown) {
+	if (jqXHR.status == 422){
+		layui.use('layer', function(){
+			var layer = layui.layer;
+			layer.open({
+				title: '提示',
+				content:''+jqXHR.responseJSON.errors.name+'',
+				icon:2
+			});
+		});
+	}
+}

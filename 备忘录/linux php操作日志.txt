@@ -69,6 +69,215 @@ oniguruma：http://down.24kplus.com/linux/oniguruma/oniguruma-6.7.0-1.el7.x86_64
 oniguruma-devel：http://down.24kplus.com/linux/oniguruma/oniguruma-devel-6.7.0-1.el7.x86_64.rpm 
 
 
+######################################################################################
+#Centos7 编译安装PHP7.2（Nginx篇）
+######################################################################################
+https://blog.csdn.net/qq_35416183/article/details/88621214
+
+1、yum安装PHP依赖组件
+yum -y install wget vim pcre pcre-devel openssl openssl-devel libicu-devel gcc gcc-c++ autoconf libjpeg libjpeg-devel libpng libpng-devel freetype freetype-devel libxml2 libxml2-devel zlib zlib-devel glibc glibc-devel glib2 glib2-devel ncurses ncurses-devel curl curl-devel krb5-devel libidn libidn-devel openldap openldap-devel nss_ldap cmake boost-devel bison automake libevent libevent-devel gd gd-devel libtool* libxslt libxslt-devel readline readline-devel gmp gmp-devel libcurl libcurl-devel openjpeg-devel
+
+2、编译配置
+./configure \
+--prefix=/usr/local/php \
+--enable-fpm \
+--with-config-file-path=/usr/local/php/etc \
+--enable-mysqlnd \
+--with-mysqli=mysqlnd \
+--with-pdo-mysql=mysqlnd \
+--enable-pdo \
+--with-iconv-dir  \
+--with-freetype-dir \
+--with-jpeg-dir \
+--with-png-dir \
+--with-libzip \
+--with-libxml-dir= \
+--enable-xml \
+--enable-session \
+--disable-rpath \
+--enable-bcmath \
+--enable-shmop \
+--enable-sysvsem \
+--enable-inline-optimization \
+--with-curl \
+--enable-mbregex \
+--enable-mbstring \
+--enable-intl \
+--enable-pcntl \
+--enable-ftp \
+--with-gd \
+--with-openssl \
+--with-mhash \
+--enable-pcntl \
+--enable-sockets \
+--with-xmlrpc \
+--enable-zip \
+--enable-soap \
+--with-gettext \
+--disable-fileinfo \
+--enable-opcache \
+--enable-maintainer-zts \
+--with-xsl \
+--enable-tokenizer
+
+3、正式安装
+make && make install
+
+4、添加www用户
+如果原先没有创建 www 用户和 www 用户组，请按运行以下命令，如果已创建，请直接查看下一步骤。
+
+检测是否已创建www用户：
+id www
+输出：
+id: www: no such user
+
+创建www用户组
+groupadd www
+创建www用户，并设置不允许登录
+useradd -g www -s /sbin/nologin www
+
+再次检查www用户
+id www
+输出：
+uid=1000(www) gid=1000(www) groups=1000(www)
+
+5、创建配置文件
+在安装包目录里执行，并将其复制到正确的位置
+
+cp php.ini-production /usr/local/php/etc/php.ini
+cp /usr/local/php/etc/php-fpm.conf.default /usr/local/php/etc/php-fpm.conf
+cp /usr/local/php/etc/php-fpm.d/www.conf.default /usr/local/php/etc/php-fpm.d/www.conf
+
+6、配置PHP
+php.ini配置文件路径：/usr/local/php/etc/php.ini
+
+7、修改session文件存放目录
+php配置文件里session.save_path参数也就是session文件存放目录默认是/temp，这有可能会导致服务器上的其他用户有可能通过该目录的文件列表破解会话，建议将其改为php安装目录下。
+
+找到以下内容并修改：
+
+; where MODE is the octal representation of the mode. Note that this
+; does not overwrite the process's umask.
+; http://php.net/session.save-path
+session.save_path = "/usr/local/php/tmp"
+
+8、隐藏PHP版本信息(X-Powered-By)
+到以下内容并修改：
+
+; Decides whether PHP may expose the fact that it is installed on the server
+; (e.g. by adding its signature to the Web server header).  It is no security
+; threat in any way, but it makes it possible to determine whether you use PHP
+; on your server or not.
+; http://php.net/expose-php
+expose_php = Off
+
+9、默认UTC时区改成中国时区
+; Defines the default timezone used by the date functions
+; http://php.net/date.timezone
+date.timezone = PRC
+
+10、创建session文件存放目录
+如果修改了php.ini配置文件中的session.save_path参数，这里假定session存放目录为/usr/local/php/tmp。
+需要建立tmp目录，并将tmp用户和用户组改成www用户www用户组，避免出现权限项目出现权限问题。
+
+mkdir /usr/local/php/tmp && chown www:www /usr/local/php/tmp
+ps：如果将session文件存放在其他目录也是可以，记得将目录用户和用户组改成www即可。
+
+11、启动 php-fpm 服务
+12、更改 php-fpm 用户和用户组
+vim /usr/local/php/etc/php-fpm.d/www.conf
+找到以下内容并修改：
+
+; Unix user/group of processes
+; Note: The user is mandatory. If the group is not set, the default user's group
+;       will be used.
+user = www
+group = www
+
+然后启动 php-fpm 服务：
+
+/usr/local/php/sbin/php-fpm
+查看进程：
+ps aux | grep php-fpm
+输出：
+root      72685  0.0  0.7 262756  7680 ?        Ss   15:23   0:00 php-fpm: master process (/usr/local/php/etc/php-fpm.conf)
+www       72686  0.0  0.7 264840  7572 ?        S    15:23   0:00 php-fpm: pool www
+www       72687  0.0  0.7 264840  7572 ?        S    15:23   0:00 php-fpm: pool www
+root      72692  0.0  0.0 112724   984 pts/0    R+   15:25   0:00 grep --color=auto php-fpm
+
+######################################################################################
+# php编译参数注解
+######################################################################################
+https://www.cnblogs.com/hubing/p/3735452.html
+
+php编译参数注解--不明白许多参数的作用 慎用 –with-curlwrappers参数
+在Linux下安装PHP，源代码方式安装，总需要配置很多参数。这里列出常用配置参数，并详细用中文解释说明了。给大家一些参考
+
+编译PHP的时候慎用 –with-curlwrappers参数
+
+./configure
+--prefix=/usr/local/php                                   php 安装目录
+--with-apxs2=/usr/local/apache/bin/apxs     表示使用apache2.0以上版本，apxs表示使用的apache1.0版本
+--with-config-file-path=/usr/local/PHP/etc               指定php.ini位置
+--with-MySQL=/usr/local/mysql                        mysql安装目录，对mysql的支持
+--with-MySQLi=/usr/local/mysql/bin/mysql_config            mysqli文件目录,优化支持
+--enable-safe-mode                              打开安全模式
+--enable-ftp                                 打开ftp的支持
+--enable-zip                                 打开对zip的支持
+--with-bz2                                    打开对bz2文件的支持                      
+--with-jpeg-dir                                 打开对jpeg图片的支持
+--with-png-dir                                 打开对png图片的支持
+--with-freetype-dir                              打开对freetype字体库的支持
+--without-iconv                                 关闭iconv函数，种字符集间的转换
+--with-libXML-dir                                 打开libxml2库的支持
+--with-XMLrpc                                 打开xml-rpc的c语言
+--with-zlib-dir                                 打开zlib库的支持
+--with-gd                                    打开gd库的支持
+--enable-gd-native-ttf                           支持TrueType字符串函数库
+--with-curl                                    打开curl浏览工具的支持
+--with-curlwrappers                              运用curl工具打开url流
+--with-ttf                                    打开freetype1.*的支持，可以不加了
+--with-xsl 打开XSLT 文件支持，扩展了libXML2库 ，需要libxslt软件
+--with-gettext                                 打开gnu 的gettext 支持，编码库用到
+--with-pear                      打开pear命令的支持，PHP扩展用的
+--enable-calendar                  打开日历扩展功能
+--enable-mbstring                  多字节，字符串的支持
+--enable-bcmath                  打开图片大小调整,用到zabbix监控的时候用到了这个模块
+--enable-sockets                  打开 sockets 支持
+--enable-exif                      图片的元数据支持
+--enable-magic-quotes               魔术引用的支持
+--disable-rpath                     关闭额外的运行库文件
+--disable-debug                  关闭调试模式
+--with-mime-magic=/usr/share/file/magic.mime      魔术头文件位置
+
+CGI方式安装才用的参数
+--enable-fpm                     打上PHP-fpm 补丁后才有这个参数，CGI方式安装的启动程序
+--enable-fastCGI                  支持fastcgi方式启动PHP
+--enable-force-CGI-redirect             同上 ,帮助里没有解释
+--with-ncurses                     支持ncurses 屏幕绘制以及基于文本终端的图形互动功能的动态库
+--enable-pcntl                     freeTDS需要用到的，可能是链接mssql 才用到
+
+mhash和mcrypt算法的扩展
+--with-mcrypt                     算法
+--with-mhash                     算法
+
+--with-gmp
+--enable-inline-optimization
+--with-openssl                     openssl的支持，加密传输时用到的
+--enable-dbase
+--with-pcre-dir=/usr/local/bin/pcre-config      perl的正则库案安装位置
+--disable-dmalloc
+--with-gdbm                     dba的gdbm支持
+--enable-sigchild
+--enable-sysvsem
+--enable-sysvshm
+--enable-zend-multibyte               支持zend的多字节
+--enable-mbregex
+--enable-wddx
+--enable-shmop
+--enable-soap
+
+
 ############################################################# 加入环境变量 #################################################################
 1、打开环境变量配置文件
 vim /etc/profile
@@ -497,8 +706,7 @@ mysql>flush privileges;
 	如果pid-file=/var/run/mariadb/mariadb.pid 没有/var/run/mariadb/这个目录，这可以创建
 	mkdir /var/run/mariadb
 	chmod 777 /var/run/mariadb
-
-
+	
 
 mysql8.0远程访问授权
 在安设置mysql8.0远程访问过程中遇到的问题：
@@ -528,6 +736,14 @@ FLUSH PRIVILEGES;
 参考网站：
 	https://blog.csdn.net/seventopalsy/article/details/80195246
 	https://blog.csdn.net/xairen/article/details/84621751
+
+
+mysql常见问题：
+ 1、Can't connect to local MySQL server through socket '/tmp/mysql.sock'
+ 有可能是mysql.sock文件不存在，或是mariadb目不存在，按照上面解决
+
+
+
 
 *********** 常见问题 ****************
 mount /dev/cdrom /mnt/cdrom/
@@ -611,7 +827,8 @@ WantedBy=multi-user.target
 
 */
 
-
+重新加载systemctll配置：
+systemctl daemon-reload
 
 [Unit]:服务的说明
 Description:描述服务
@@ -651,16 +868,62 @@ systemctl list-units --type=service        #查看所有已启动的服务
 
 
 
+/*********************************************************************
+*Centos7 配置php-fpm服务到systemctl
+***********************************************************************/
+https://blog.csdn.net/qq_35416183/article/details/88778806
 
+php-fpm服务化
+修改php-fpm.conf
+打开php-fpm.conf：
 
+vim /usr/local/php/etc/php-fpm.conf
+找到以下内容并修改：
+; Pid file
+; Note: the default prefix is /usr/local/php/var
+; Default Value: none
+pid = /var/run/php-fpm.pid
 
+新建php-fpm服务文件
+新建 php-fpm 服务文件
 
+touch /usr/lib/systemd/system/php-fpm.service
+打开 php-fpm 服务文件
 
+vim /usr/lib/systemd/system/php-fpm.service
+将内容修改成
 
+[Unit]
+Description=The PHP FastCGI Process Manager
+After=syslog.target network.target
+[Service]
+Type=forking
+PIDFile=/var/run/php-fpm.pid
+ExecStart=/usr/local/php/sbin/php-fpm
+ExecReload=/bin/kill -USR2 $MAINPID
+PrivateTmp=true
+[Install]
+WantedBy=multi-user.target
 
+重新加载systemctll配置：
+systemctl daemon-reload
 
+停止运行中的php-fpm进程
+查看当前进程列表是否存在 php-fpm 进程：
 
+ps aux|grep php-fpm
+如果存在 php-fpm 进程，需先终止该进程：
 
+使用systemctl管理php-fpm
+启动服务 systemctl start php-fpm
+
+查看状态 systemctl status php-fpm
+停止服务 systemctl stop php-fpm
+重启服务 systemctl restart php-fpm
+修改配置文件后重载 systemctl reload php-fpm
+
+开机自启动 systemctl enable php-fpm
+禁止开机自启动systemctl didable php-fpm
 
 /*********************************************************************
 *php在服务器上常报错			重要
@@ -685,6 +948,7 @@ fastcgi_param PHP_ADMIN_VALUE "open_basedir=$document_root/:$document_root/../:/
 
 
 ******************************* 服务器配置问题列表 ****************************************/
+502 bad gateway的解决方案
 
 1、配置Nginx和php-fpm用Sock套接字连接时，找不到php-fpm.sock的原因
 	php5.3之后的版本，php-fpm.conf里的listen的默认配置是127.0.0.1:9000，就不会生成php-fpm.sock，因此如果需要Nginx里的配置有链接tmp/php-fpm.sock的话，需要将listen的地址配置成和nginx的配置文件一致，同时保证这个路径已经存在，这样在启动./php-fpm的时候，会在对应路径上自动生成php-fpm.sock，例如：
@@ -713,7 +977,7 @@ fastcgi_param PHP_ADMIN_VALUE "open_basedir=$document_root/:$document_root/../:/
 
 	[...]
 		location ~ .php$ {
-			root           /usr/share/nginx/html;
+			#root           /usr/share/nginx/html;
 			try_files $uri =404;
 			fastcgi_pass   unix:/var/run/php-fpm/php5-fpm.sock;
 			fastcgi_index  index.php;
@@ -728,6 +992,7 @@ fastcgi_param PHP_ADMIN_VALUE "open_basedir=$document_root/:$document_root/../:/
 	这样配置好后，就会在/var/run/php-fpm/目录下自动生成一个php5-fpm.sock文件，然后一切OK。
 
 	本机sock文件：/var/run/php-fpm/php7.1.5-fpm.sock
+	本机sock文件：/var/run/php-fpm/php7-fpm.sock
 	
 2、使用unix socket配置nginx fastcgi_pass时报502错解决
 	版本高于5.4（含5.4） 默认监听的socket文件权限是所有者只读，属组和其他用户没有任何权限。所以，nginx的启动用户（咱们配置的是nobody）就没有办法去读这个socket文件，最终导致502，这个问题可以在nginx的错误日志中发现。解决办法很简单，上面给出的配置文件中就有避免这个问题的配置。
@@ -747,3 +1012,28 @@ fastcgi_param PHP_ADMIN_VALUE "open_basedir=$document_root/:$document_root/../:/
 3、nginx配置好了，html能执行，PHP也能执行但没有返回内容，说明fastcgi配置有问题
 	fastcgi_param  SCRIPT_FILENAME  $document_root$fastcgi_script_name;
 
+
+注意：
+HP-FPM配置场景:
+方式1:
+	php-fpm.conf: listen = 127.0.0.1:9000
+	nginx.conf: fastcgi_pass 127.0.0.1:9000;
+方式2:
+	php-fpm.conf: listen = /tmp/php-fpm.sock
+	nginx.conf: fastcgi_pass unix:/tmp/php-fpm.sock;
+	其中php-fpm.sock是一个文件,由php-fpm生成,类型是srw-rw—-.
+
+参考资料：
+https://blog.csdn.net/ucmir183/article/details/80240112
+
+----------------
+Nginx 403 error: directory index of [folder] is forbidden问题
+解决：
+	把
+		location / {
+		  try_files $uri $uri/ /index.html index.php;
+		} 
+	改为
+		location / {
+		  try_files $uri /index.html index.php;
+		}

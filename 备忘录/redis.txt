@@ -6,6 +6,153 @@ https://www.zhihu.com/question/279540635
 
 http://doc.redisfans.com/
 
+************************************* install ******************************************
+centos7安装redis6.0踩坑之路
+1、打开redis官网https://redis.io/，找到download界面，复制下载链接http://download.redis.io/releases/redis-6.0.1.tar.gz然后在linux终端上用wget命令进行安装
+wget http://download.redis.io/releases/redis-6.0.1.tar.gz
+
+2、然后执行tar进行解压缩包
+tar -zxvf redis-6.0.1.tar.gz
+
+3、通过阅读redis-6.0.1下的README.MD可以自己进行安装，这里留下安装方式
+	3.1输入make命令进行编译整个redis
+		make
+	3.2 如果遇到cc命令没找到，就要先安装gcc，如果没有问题就跳转到3.5
+	3.3 执行yum安装gcc
+		yum install gcc -y
+
+	3.4 安装完成后清除一下上一次make的缓存，然后再执行命令make，就行编译
+		make distclean && make
+	3.5如果还是报错server.c的问题，查看gcc的版本，然后升级gcc的版本,如果没有问题就跳转到3.7
+		# 查看gcc版本是否在5.3以上，centos7.6默认安装4.8.5
+		gcc -v
+		# 升级gcc到5.3及以上,如下：
+		升级到gcc 9.3：
+		yum -y install centos-release-scl
+		yum -y install devtoolset-9-gcc devtoolset-9-gcc-c++ devtoolset-9-binutils
+		scl enable devtoolset-9 bash
+		需要注意的是scl命令启用只是临时的，退出shell或重启就会恢复原系统gcc版本。
+		如果要长期使用gcc 9.3的话：
+
+		echo "source /opt/rh/devtoolset-9/enable" >>/etc/profile
+		这样退出shell重新打开就是新版的gcc了
+		以下其他版本同理，修改devtoolset版本号即可。
+		
+	3.6 完成后再清理一次缓存，然后再make
+		make distclean && make
+	3.7 安装
+		make install
+		
+https://blog.csdn.net/weixin_43260474/article/details/106003751
+
+
+centos7安装redis6.0踩坑之路
+1、安装gcc套装：
+	yum install cpp
+	yum install binutils
+	yum install glibc
+	yum install glibc-kernheaders
+	yum install glibc-common
+	yum install glibc-devel
+	yum install gcc
+	yum install make
+2、升级gcc
+	yum -y install centos-release-scl
+	yum -y install devtoolset-9-gcc devtoolset-9-gcc-c++ devtoolset-9-binutils
+	scl enable devtoolset-9 bash
+
+3、设置永久升级：
+	echo "source /opt/rh/devtoolset-9/enable" >>/etc/profile
+
+4、安装redis：
+	wget http://download.redis.io/releases/redis-6.0.3.tar.gz
+	tar xzf redis-6.0.3.tar.gz
+	cd redis-6.0.3
+	make
+	make install
+
+5、启动服务：
+	src/redis-server
+6、客户端测试：
+	src/redis-cli
+	
+https://blog.csdn.net/walykyy/article/details/106291628
+
+************************************* php安装Redis扩展 ******************************************
+https://github.com/phpredis/phpredis
+
+
+************************************* redis配置 ******************************************
+bind 127.0.0.1
+bind 192.168.241.199
+protected-mode no
+port 6379
+tcp-backlog 511
+timeout 0
+tcp-keepalive 300
+daemonize yes
+supervised no
+pidfile /var/run/redis_6379.pid
+loglevel notice
+logfile "6379.log"
+databases 16
+always-show-logo yes
+save 900 1
+save 300 10
+save 60 10000
+stop-writes-on-bgsave-error yes
+rdbcompression yes
+rdbchecksum yes
+dbfilename dump.rdb
+rdb-del-sync-files no
+dir /usr/local/redis-6.0.3/data
+replica-serve-stale-data yes
+replica-read-only yes
+repl-diskless-sync no
+repl-diskless-sync-delay 5
+repl-diskless-load disabled
+repl-disable-tcp-nodelay no
+replica-priority 100
+acllog-max-len 128
+lazyfree-lazy-eviction no
+lazyfree-lazy-expire no
+lazyfree-lazy-server-del no
+replica-lazy-flush no
+lazyfree-lazy-user-del no
+appendonly no
+appendfilename "appendonly.aof"
+appendfsync everysec
+no-appendfsync-on-rewrite no
+auto-aof-rewrite-percentage 100
+auto-aof-rewrite-min-size 64mb
+aof-load-truncated yes
+aof-use-rdb-preamble yes
+lua-time-limit 5000
+slowlog-log-slower-than 10000
+slowlog-max-len 128
+latency-monitor-threshold 0
+notify-keyspace-events ""
+hash-max-ziplist-entries 512
+hash-max-ziplist-value 64
+list-max-ziplist-size -2
+list-compress-depth 0
+set-max-intset-entries 512
+zset-max-ziplist-entries 128
+zset-max-ziplist-value 64
+hll-sparse-max-bytes 3000
+stream-node-max-bytes 4096
+stream-node-max-entries 100
+activerehashing yes
+client-output-buffer-limit normal 0 0 0
+client-output-buffer-limit replica 256mb 64mb 60
+client-output-buffer-limit pubsub 32mb 8mb 60
+hz 10
+dynamic-hz yes
+aof-rewrite-incremental-fsync yes
+rdb-save-incremental-fsync yes
+jemalloc-bg-thread yes
+
+
 ************************************* redis配置 ******************************************
 设置密码：
 	vim redis.conf

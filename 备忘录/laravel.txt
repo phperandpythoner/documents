@@ -24,6 +24,51 @@ symfony server:start
 ---------------------------------------------------------------------------------------------	
 
 
+---------------------------------------------------------------------------------------------	
+安装 doctrine/dbal
+# 如果只想在开发环境安装请加上 --dev
+composer require "doctrine/dbal: ~2.3"
+
+
+安装 larave-ide-helper
+# 如果只想在开发环境安装请加上 --dev
+composer require barryvdh/laravel-ide-helper
+如果安装失败,可以在composer.json中require项新增"barryvdh/laravel-ide-helper": "v2.7.0",再composer update
+"require": {
+	"barryvdh/laravel-ide-helper": "v2.7.0",
+},
+
+---------------------------------------------------------------------------------------------	
+
+
+
+
+---------------------------------------------------------------------------------------------	
+Laravel IDE Helper
+Laravel 超好用代码提示工具 Laravel IDE Helper
+
+安装 doctrine/dbal
+安装 larave-ide-helper
+
+
+版本小于 5.5:
+在 「config/app.php」的 「providers」数组中加入
+Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider::class
+如果你的 Laravel 版本小于 5.5 「如果没记错」的话，请注册服务提供者，否则请忽略
+
+
+导出配置文件（如果默认配置就满足需求了，也可以忽略这一步）
+php artisan vendor:publish --provider="Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider" --tag=config
+
+使用
+php artisan ide-helper:generate - 为 Facades 生成注释
+php artisan ide-helper:models - 为数据模型生成注释
+php artisan ide-helper:meta - 生成 PhpStorm Meta file
+
+
+https://learnku.com/articles/10172/laravel-super-good-code-prompt-tool-laravel-ide-helper
+---------------------------------------------------------------------------------------------	
+
 
 ---------------------------------------------------------------------------------------------
 ****************** 创建中间件 **********************
@@ -49,18 +94,6 @@ php artisan make:middleware Menus
 3、注册好以后，将路由中间件应用到路由中去
 	Route::middleware(['auth', 'authenticationrbac'])
 4、测试以及编码
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -407,7 +440,7 @@ laravel清除视图缓存
 	
 	
 ---------------------------------------------------------------------------------------------
-遇到的坑		
+错误或遇到的坑		
 ---------------------------------------------------------------------------------------------
 1、修改view文件后没有立即生效(vendor/laravel/framework/src/Illuminate/View/Compilers 判断时间源码)
 	有可能是服务器上的时间比本地的时间快，修改服务器上时间即可
@@ -418,3 +451,15 @@ laravel清除视图缓存
 		
 2、The stream or file "/data/web/1024/storage/logs/laravel.log" could not be opened: failed to open stream: Permission denied
 	解决：chmod 777 -R storage/
+	
+3、Please provide a valid cache path.
+	解决方法如下：
+
+	1、确保storage目录下有如app，framework，views三个目录。
+
+	2、确保storage/framework目录下也有cache，sessions，views三个目录。
+
+	3、chmod 0777 -R ./storage/
+	缺少以上目录就手动创建，然后访问网站首页试试。
+	
+4、No application encryption key has been specified.

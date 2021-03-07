@@ -1,4 +1,6 @@
-http://mirrors.sohu.com/php/
+镜像网站：http://mirrors.sohu.com/php/
+WindowsPHP下载：https://windows.php.net/download/
+国内加速下载php网站：http://php.p2hp.com/releases/
 
 -------------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------------
@@ -336,6 +338,12 @@ kill -USR2 进程号
 ######################### PHP安装扩展 ######################################
 --enable-static：生成静态链接库
 --enable-shared：生成动态链接库
+
+
+$ phpize
+$ ./configure --with-php-config=/usr/local/php7/bin/php-config
+$ make
+$ make install
 
 
 如果之前有安装记录，建议先make clean ,否则可能导致安装失败

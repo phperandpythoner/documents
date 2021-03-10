@@ -25,6 +25,102 @@ symfony server:start
 
 
 ---------------------------------------------------------------------------------------------	
+Laravel 模块化开发
+
+widart/laravel-modules，laravel 的模块管理器
+git 地址：https://github.com/nWidart/laravel-modules
+
+
+安装：
+使用 composer 快捷安装：
+composer require nwidart/laravel-modules
+
+接下来发布软件包的配置，通过运行以下方式：
+
+php artisan vendor:publish --provider="Nwidart\Modules\LaravelModulesServiceProvider"
+执行完上面这条命令之后，在 config 文件夹下会生成一个 modules.php 文件，这个是模块开发的配置文件，你可以在这里面进行配置。
+
+添加自动加载：
+默认情况下，模块类不会自动加载。 您可以使用 psr-4 自动加载模块。
+修改文件：composer.json
+{
+"autoload": {
+   "psr-4": {
+      "App\\": "app/",
+      "Modules\\": "Modules/"
+   }
+}
+}
+提示：不要忘记运行 composer dump-autoload 命令。
+
+
+生成模块
+接下来生成需要的模块，使用以下命令：
+php artisan module:make module-name
+如果需要一次生成多个模块，可以使用以下命令：
+
+php artisan module:make module-name1 module-name2 module-name3
+
+————————————————
+https://learnku.com/articles/6153/laravel-modular-development
+https://learnku.com/articles/24818
+---------------------------------------------------------------------------------------------	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---------------------------------------------------------------------------------------------
+使用API Resources快速输出自定义JSON方法详解
+
+php artisan make:resource Customer
+
+https://laravelacademy.org/post/9203.html
+https://www.jb51.net/article/184174.htm	
+---------------------------------------------------------------------------------------------
+
+
+
+
+
+
+---------------------------------------------------------------------------------------------	
+cat storage/laravels.pid
+pkill 查询出的id
+---------------------------------------------------------------------------------------------	
+	
+
+
+---------------------------------------------------------------------------------------------	
 安装 doctrine/dbal
 # 如果只想在开发环境安装请加上 --dev
 composer require "doctrine/dbal: ~2.3"

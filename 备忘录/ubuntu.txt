@@ -1,3 +1,112 @@
+--------------------------------------------------------------------------------------------------
+Ubuntu apt-get 源设置国内镜像源
+1. 原文件备份
+sudo cp /etc/apt/sources.list /etc/apt/sources.list.bak
+
+2. 编辑源列表文件
+rm -f /etc/apt/sources.list
+sudo gedit /etc/apt/sources.list
+
+
+deb http://mirrors.aliyun.com/ubuntu/ trusty main restricted universe multiverse
+deb-src http://mirrors.aliyun.com/ubuntu/ trusty main restricted universe multiverse
+deb http://mirrors.aliyun.com/ubuntu/ trusty-security main restricted universe multiverse
+deb-src http://mirrors.aliyun.com/ubuntu/ trusty-security main restricted universe multiverse
+deb http://mirrors.aliyun.com/ubuntu/ trusty-updates main restricted universe multiverse
+deb-src http://mirrors.aliyun.com/ubuntu/ trusty-updates main restricted universe multiverse
+deb http://mirrors.aliyun.com/ubuntu/ trusty-backports main restricted universe multiverse
+deb-src http://mirrors.aliyun.com/ubuntu/ trusty-backports main restricted universe multivers
+deb http://mirrors.aliyun.com/ubuntu/ trusty-proposed main restricted universe multiverse
+deb-src http://mirrors.aliyun.com/ubuntu/ trusty-proposed main restricted universe multiverse
+
+
+	#阿里源
+    deb http://mirrors.aliyun.com/ubuntu/ bionic main restricted universe multiverse
+    deb http://mirrors.aliyun.com/ubuntu/ bionic-security main restricted universe multiverse
+    deb http://mirrors.aliyun.com/ubuntu/ bionic-updates main restricted universe multiverse
+    deb http://mirrors.aliyun.com/ubuntu/ bionic-proposed main restricted universe multiverse
+    deb http://mirrors.aliyun.com/ubuntu/ bionic-backports main restricted universe multiverse
+    deb-src http://mirrors.aliyun.com/ubuntu/ bionic main restricted universe multiverse
+    deb-src http://mirrors.aliyun.com/ubuntu/ bionic-security main restricted universe multiverse
+    deb-src http://mirrors.aliyun.com/ubuntu/ bionic-updates main restricted universe multiverse
+    deb-src http://mirrors.aliyun.com/ubuntu/ bionic-proposed main restricted universe multiverse
+    deb-src http://mirrors.aliyun.com/ubuntu/ bionic-backports main restricted universe multiverse
+
+    #网易源
+    deb http://mirrors.163.com/ubuntu/ bionic main restricted universe multiverse
+    deb http://mirrors.163.com/ubuntu/ bionic-security main restricted universe multiverse
+    deb http://mirrors.163.com/ubuntu/ bionic-updates main restricted universe multiverse
+    deb http://mirrors.163.com/ubuntu/ bionic-proposed main restricted universe multiverse
+    deb http://mirrors.163.com/ubuntu/ bionic-backports main restricted universe multiverse
+    deb-src http://mirrors.163.com/ubuntu/ bionic main restricted universe multiverse
+    deb-src http://mirrors.163.com/ubuntu/ bionic-security main restricted universe multiverse
+    deb-src http://mirrors.163.com/ubuntu/ bionic-updates main restricted universe multiverse
+    deb-src http://mirrors.163.com/ubuntu/ bionic-proposed main restricted universe multiverse
+    deb-src http://mirrors.163.com/ubuntu/ bionic-backports main restricted universe multiverse
+
+    #清华源
+    deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic main restricted universe multiverse
+    deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic main restricted universe multiverse
+    deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-updates main restricted universe multiverse
+    deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-updates main restricted universe multiverse
+    deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-backports main restricted universe multiverse
+    deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-backports main restricted universe multiverse
+    deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-security main restricted universe multiverse
+    deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-security main restricted universe multiverse
+    deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-proposed main restricted universe multiverse
+    deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-proposed main restricted universe multiverse
+
+    ##中科大源
+    deb https://mirrors.ustc.edu.cn/ubuntu/ bionic main restricted universe multiverse
+    deb-src https://mirrors.ustc.edu.cn/ubuntu/ bionic main restricted universe multiverse
+    deb https://mirrors.ustc.edu.cn/ubuntu/ bionic-updates main restricted universe multiverse
+    deb-src https://mirrors.ustc.edu.cn/ubuntu/ bionic-updates main restricted universe multiverse
+    deb https://mirrors.ustc.edu.cn/ubuntu/ bionic-backports main restricted universe multiverse
+    deb-src https://mirrors.ustc.edu.cn/ubuntu/ bionic-backports main restricted universe multiverse
+    deb https://mirrors.ustc.edu.cn/ubuntu/ bionic-security main restricted universe multiverse
+    deb-src https://mirrors.ustc.edu.cn/ubuntu/ bionic-security main restricted universe multiverse
+    deb https://mirrors.ustc.edu.cn/ubuntu/ bionic-proposed main restricted universe multiverse
+    deb-src https://mirrors.ustc.edu.cn/ubuntu/ bionic-proposed main restricted universe multiverse
+
+
+
+4.更新
+sudo apt-get update
+
+--------------------------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------------------------
+挂载
+ 
+假设你的移动硬盘在windows下显示为 G:\
+新建文件夹g
+sudo mkdir /mnt/g
+挂载盘符g
+sudo mount -t drvfs G: /mnt/g
+3.大功告成。进入/mnt/g即可与windows下一摸一样。
+4.弹出移动硬盘，这样才能在windows下正常弹出，否则是会一直占用的。
+sudo umount /mnt/g
+--------------------------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------------------------
+aptitude
+
+aptitude update	更新可用的包列表
+aptitude upgrade	升级可用的包
+aptitude dist-upgrade	将系统升级到新的发行版
+aptitude install pkgname	安装包
+aptitude remove pkgname	删除包
+aptitude purge pkgname	删除包及其配置文件
+aptitude search string	搜索包
+aptitude show pkgname	显示包的详细信息
+aptitude clean	删除下载的包文件
+aptitude autoclean	仅删除过期的包文件
+
+--------------------------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------------------------
 一般我们都需要先装pcre, zlib，前者为了重写rewrite，后者为了gzip压缩
 Perl兼容正则表达式库（PCRE）-- PCRE LIBRARY 库安装
 sudo apt-get update

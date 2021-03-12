@@ -55,7 +55,12 @@ fatal: refusing to merge unrelated histories
 解决：
 	git pull origin master --allow-unrelated-histories #加上后面这个选项允许不相关历史提交（master为远程分支名）
 	
+
+
+提交到远程时出错：
+fatal: unable to access 'https://github.com/phperandpythoner/documents.git/': schannel: failed to receive handshake, SSL/TLS connection failed
 	
+	git config --global http.sslVerify false	
 
 ****************************************   实测--常用命令 **********************************************************************
 git删除远程分支
